@@ -10,6 +10,12 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(BtnRun()));
     connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(BtnCheck()));
     connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(BtnAdjust()));
+
+    pDlEInterface = new DeltaECommonInterface(this);
+    if(pDlEInterface == NULL)
+    {
+        this->close();
+    }
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -20,20 +26,24 @@ DeltaEMainWindow::~DeltaEMainWindow()
 
 void DeltaEMainWindow::BtnConnect()
 {
+    pDlEInterface->DtEConnect();
     ui->txt_Massage->setText("connect");
 }
 
 void DeltaEMainWindow::BtnRun()
 {
+    pDlEInterface->DtERun();
     ui->txt_Massage->setText("run");
 }
 
 void DeltaEMainWindow::BtnCheck()
 {
+    pDlEInterface->DtECheck();
     ui->txt_Massage->setText("Check");
 }
 
 void DeltaEMainWindow::BtnAdjust()
 {
+    pDlEInterface->DtEAdjust();
     ui->txt_Massage->setText("adjust");
 }

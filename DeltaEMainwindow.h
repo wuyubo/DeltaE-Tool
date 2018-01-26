@@ -2,7 +2,7 @@
 #define DELTAEMAINWINDOW_H
 
 #include <QMainWindow>
-
+#include "DeltaECcommonInterface.h"
 namespace Ui {
 class DeltaEMainWindow;
 }
@@ -19,7 +19,8 @@ private slots:
     void BtnRun();
     void BtnCheck();
     void BtnAdjust();
-
+private:
+    DeltaECommonInterface *pDlEInterface;
 private:
     Ui::DeltaEMainWindow *ui;
 };

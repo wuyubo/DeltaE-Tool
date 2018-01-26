@@ -13,10 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        DeltaEMainwindow.cpp
+        DeltaEMainwindow.cpp \
+    DeltaECommonInterface.cpp
 
 HEADERS  += DeltaEMainwindow.h \
-    global_define.h
+    global_define.h \
+    DeltaECcommonInterface.h
 
 FORMS    += DeltaEMainwindow.ui
 
