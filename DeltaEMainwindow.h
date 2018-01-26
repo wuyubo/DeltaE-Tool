@@ -14,6 +14,11 @@ class DeltaEMainWindow : public QMainWindow
 public:
     explicit DeltaEMainWindow(QWidget *parent = 0);
     ~DeltaEMainWindow();
+private slots:
+    void BtnConnect();
+    void BtnRun();
+    void BtnCheck();
+    void BtnAdjust();
 
 private:
     Ui::DeltaEMainWindow *ui;

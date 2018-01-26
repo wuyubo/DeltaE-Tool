@@ -15,6 +15,7 @@ TEMPLATE = app
 SOURCES += main.cpp\
         DeltaEMainwindow.cpp
 
-HEADERS  += DeltaEMainwindow.h
+HEADERS  += DeltaEMainwindow.h \
+    global_define.h
 
 FORMS    += DeltaEMainwindow.ui
