@@ -19,3 +19,8 @@ HEADERS  += DeltaEMainwindow.h \
     global_define.h
 
 FORMS    += DeltaEMainwindow.ui
+
+RESOURCES += \
+    images.qrc
+
+RC_FILE += cvte.rc
