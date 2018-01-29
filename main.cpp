@@ -1,5 +1,5 @@
 #include "DeltaEMainwindow.h"
-#include "global_define.h"
+#include "global.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

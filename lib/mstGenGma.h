@@ -52,9 +52,6 @@ void getWBTrackValues(int colorTemp, BYTE *gainR, BYTE gainG, BYTE *gainB);
 void getWBTrackValuesXY(int colorTemp, BYTE *gainR, BYTE gainG, BYTE *gainB);
 void setMaxBrightnessRatio(float ratio);
 
-
-
-
 #ifdef __cplusplus
 }//extern "C" {
 #endif

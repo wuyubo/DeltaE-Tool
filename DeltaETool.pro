@@ -14,12 +14,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         DeltaEMainwindow.cpp \
-    DeltaECommonInterface.cpp
+    DeltaECommonInterface.cpp \
+    ddc/ddc_aps.cpp
 
 HEADERS  += DeltaEMainwindow.h \
-    global_define.h \
     DeltaECcommonInterface.h \
-    lib/mstGenGma.h
+    lib/mstGenGma.h \
+    ddc/ddc_aps.h \
+    global.h
 
 FORMS    += DeltaEMainwindow.ui
 
