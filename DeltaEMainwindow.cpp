@@ -26,8 +26,8 @@ DeltaEMainWindow::~DeltaEMainWindow()
 
 void DeltaEMainWindow::BtnConnect()
 {
-    pDlEInterface->DtEConnect();
-    ui->txt_Massage->setText("connect");
+    int version = pDlEInterface->DtEConnect();
+    ui->txt_Massage->setText(QString::number(version, 16));
 }
 
 void DeltaEMainWindow::BtnRun()

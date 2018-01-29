@@ -1,6 +1,7 @@
 #ifndef DELTAECOMMONINTERFACE_H
 #define DELTAECOMMONINTERFACE_H
 
+#include "lib/mstGenGma.h"
 #include <QObject>
 
 class DeltaECommonInterface : public QObject
