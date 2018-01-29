@@ -13,8 +13,8 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(actAbout()));
 
-    pDlEInterface = new DeltaECommonInterface(this);
-    if(pDlEInterface == NULL)
+    pDteInterface = new DeltaEInterface(this);
+    if(pDteInterface == NULL)
     {
         this->close();
     }
@@ -28,25 +28,25 @@ DeltaEMainWindow::~DeltaEMainWindow()
 
 void DeltaEMainWindow::actConnect()
 {
-    int version = pDlEInterface->dteConnect();
-    ui->txt_Massage->setText(QString::number(version, 16));
+    pDteInterface->dteConnect();
+    ui->txt_Massage->setText("connect");
 }
 
 void DeltaEMainWindow::actRun()
 {
-    pDlEInterface->dteRun();
+    pDteInterface->dteRun();
     ui->txt_Massage->setText("run");
 }
 
 void DeltaEMainWindow::actCheck()
 {
-    pDlEInterface->dteCheck();
+    pDteInterface->dteCheck();
     ui->txt_Massage->setText("Check");
 }
 
 void DeltaEMainWindow::actAdjust()
 {
-    pDlEInterface->dteAdjust();
+    pDteInterface->dteAdjust();
     ui->txt_Massage->setText("adjust");
 }
 
