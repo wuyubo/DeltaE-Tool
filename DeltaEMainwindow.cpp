@@ -6,10 +6,12 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     ui(new Ui::DeltaEMainWindow)
 {
     ui->setupUi(this);
-    connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(BtnConnect()));
-    connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(BtnRun()));
-    connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(BtnCheck()));
-    connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(BtnAdjust()));
+    connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
+    connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
+    connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(actCheck()));
+    connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(actAdjust()));
+
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(actAbout()));
 
     pDlEInterface = new DeltaECommonInterface(this);
     if(pDlEInterface == NULL)
@@ -24,26 +26,31 @@ DeltaEMainWindow::~DeltaEMainWindow()
 }
 
 
-void DeltaEMainWindow::BtnConnect()
+void DeltaEMainWindow::actConnect()
 {
-    int version = pDlEInterface->DtEConnect();
+    int version = pDlEInterface->dteConnect();
     ui->txt_Massage->setText(QString::number(version, 16));
 }
 
-void DeltaEMainWindow::BtnRun()
+void DeltaEMainWindow::actRun()
 {
-    pDlEInterface->DtERun();
+    pDlEInterface->dteRun();
     ui->txt_Massage->setText("run");
 }
 
-void DeltaEMainWindow::BtnCheck()
+void DeltaEMainWindow::actCheck()
 {
-    pDlEInterface->DtECheck();
+    pDlEInterface->dteCheck();
     ui->txt_Massage->setText("Check");
 }
 
-void DeltaEMainWindow::BtnAdjust()
+void DeltaEMainWindow::actAdjust()
 {
-    pDlEInterface->DtEAdjust();
+    pDlEInterface->dteAdjust();
     ui->txt_Massage->setText("adjust");
+}
+
+void DeltaEMainWindow::actAbout()
+{
+    ui->txt_Massage->setText("DeltaE v1.0 Base on Qt 5.6.3 MinGW 32bit");
 }

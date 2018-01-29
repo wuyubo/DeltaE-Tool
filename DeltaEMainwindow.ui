@@ -101,10 +101,17 @@
    </property>
    <widget class="QMenu" name="menuDeltaE_Tool_CVTE">
     <property name="title">
-     <string>DeltaE Tool-CVTE</string>
+     <string>setting</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuDeltaE_Tool_CVTE"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -115,6 +122,11 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionAbout">
+   <property name="text">
+    <string>about</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

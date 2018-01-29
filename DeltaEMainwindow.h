@@ -15,10 +15,11 @@ public:
     explicit DeltaEMainWindow(QWidget *parent = 0);
     ~DeltaEMainWindow();
 private slots:
-    void BtnConnect();
-    void BtnRun();
-    void BtnCheck();
-    void BtnAdjust();
+    void actConnect();
+    void actRun();
+    void actCheck();
+    void actAdjust();
+    void actAbout();
 private:
     DeltaECommonInterface *pDlEInterface;
 private:

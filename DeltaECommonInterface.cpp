@@ -4,23 +4,23 @@ DeltaECommonInterface::DeltaECommonInterface(QObject *parent) : QObject(parent)
 {
 
 }
-int DeltaECommonInterface::DtEConnect()
+int DeltaECommonInterface::dteConnect()
 { 
     return mstGetGammaDllVer();
 }
 
-int DeltaECommonInterface::DtERun()
+int DeltaECommonInterface::dteRun()
 {
     setColorTemperature(10);
     return 0;
 }
 
-int DeltaECommonInterface::DtECheck()
+int DeltaECommonInterface::dteCheck()
 {
     return 0;
 }
 
-int DeltaECommonInterface::DtEAdjust()
+int DeltaECommonInterface::dteAdjust()
 {
     return 0;
 }

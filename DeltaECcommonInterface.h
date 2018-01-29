@@ -9,10 +9,10 @@ class DeltaECommonInterface : public QObject
     Q_OBJECT
 public:
     explicit DeltaECommonInterface(QObject *parent = 0);
-    int DtEConnect();
-    int DtERun();
-    int DtECheck();
-    int DtEAdjust();
+    int dteConnect();
+    int dteRun();
+    int dteCheck();
+    int dteAdjust();
 signals:
 
 public slots:
