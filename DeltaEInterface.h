@@ -1,10 +1,11 @@
 #ifndef DELTAEINTERFACE_H
 #define DELTAEINTERFACE_H
 
-#include "lib/mstGenGma.h"
+#include "lib/mstgengmactr.h"
 #include "dll/Ca210Ctrl_Export.h"
 #include <QObject>
 using namespace ca210;
+using namespace gengma;
 class DeltaEInterface : public QObject
 {
     Q_OBJECT
@@ -20,6 +21,7 @@ signals:
 public slots:
 private:
     Ca210DllCtr *pCa210;
+    MstGenGmaCtr *pMstGenGma;
 };
 
 #endif // DELTAEINTERFACE_H

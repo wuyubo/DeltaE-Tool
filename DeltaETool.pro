@@ -16,14 +16,16 @@ SOURCES += main.cpp\
         DeltaEMainwindow.cpp \
     ddc/ddc_aps.cpp \
     DeltaEInterface.cpp \
-    dll/Ca210Ctrl_Export.cpp
+    dll/Ca210Ctrl_Export.cpp \
+    lib/mstgengmactr.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
     ddc/ddc_aps.h \
     global.h \
     DeltaEInterface.h \
-    dll/Ca210Ctrl_Export.h
+    dll/Ca210Ctrl_Export.h \
+    lib/mstgengmactr.h
 
 FORMS    += DeltaEMainwindow.ui
 
