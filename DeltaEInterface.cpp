@@ -2,11 +2,24 @@
 
 DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
 {
-
+    pCa210 = new Ca210DllCtr(CA210DLL);
 }
-int DeltaEInterface::dteConnect()
-{ 
-    return mstGetGammaDllVer();
+
+DeltaEInterface::~DeltaEInterface()
+{
+    if(pCa210)
+    {
+        delete pCa210;
+    }
+}
+
+bool DeltaEInterface::dteConnect()
+{
+    if(pCa210)
+    {
+        return pCa210->caConnect(0);
+    }
+    return false;
 }
 
 int DeltaEInterface::dteRun()

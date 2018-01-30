@@ -15,13 +15,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         DeltaEMainwindow.cpp \
     ddc/ddc_aps.cpp \
-    DeltaEInterface.cpp
+    DeltaEInterface.cpp \
+    dll/Ca210Ctrl_Export.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
     ddc/ddc_aps.h \
     global.h \
-    DeltaEInterface.h
+    DeltaEInterface.h \
+    dll/Ca210Ctrl_Export.h
 
 FORMS    += DeltaEMainwindow.ui
 
@@ -31,11 +33,9 @@ RESOURCES += \
 RC_FILE += cvte.rc
 
 
-
-
-
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/ -lmstGenGma
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/ -lmstGenGma
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
+

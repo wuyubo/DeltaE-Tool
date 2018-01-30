@@ -11,8 +11,17 @@
 *** mglobal define here
 **********************************/
 #define VERSION  "DeltaE V1.0 @CVTE"
+
+#define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 /**********************************
 *** global define end
+**********************************/
+/**********************************
+*** global data type here
+**********************************/
+#define BYTE unsigned char
+/**********************************
+*** global data type end
 **********************************/
 /**********************************
 *** global data here

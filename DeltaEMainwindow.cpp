@@ -29,8 +29,14 @@ DeltaEMainWindow::~DeltaEMainWindow()
 
 void DeltaEMainWindow::actConnect()
 {
-    pDteInterface->dteConnect();
-    ui->txt_Massage->setText("connect");
+    if(pDteInterface->dteConnect())
+    {
+        ui->txt_Massage->setText("connect success");
+    }
+    else
+    {
+        ui->txt_Massage->setText("connect failed");
+    }
 }
 
 void DeltaEMainWindow::actRun()
