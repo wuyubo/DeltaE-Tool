@@ -1,5 +1,6 @@
 #include "DeltaEMainwindow.h"
 #include "ui_DeltaEMainwindow.h"
+#include <QMessageBox>
 
 DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -52,5 +53,10 @@ void DeltaEMainWindow::actAdjust()
 
 void DeltaEMainWindow::actAbout()
 {
-    ui->txt_Massage->setText("DeltaE v1.0 Base on Qt 5.6.3 MinGW 32bit");
+    QMessageBox::about(this, tr("About"),
+                      tr("DeltaE Tool v1.0 \nBase on Qt 5.6.3 MinGW 32bit \n" \
+                         "Author:wuyubo @2018.01.29 \n\n" \
+                         "This a DeltaE Tool!\n\n" \
+                         "Github:https://github.com/wuyubo/DeltaE-Tool\n"\
+                         "Copyright © 2018 CVTE.All rights reserved."));
 }
