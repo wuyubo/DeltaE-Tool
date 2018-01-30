@@ -19,7 +19,7 @@
 /**********************************
 *** global data type here
 **********************************/
-#define BYTE unsigned char
+typedef  unsigned char BYTE;
 /**********************************
 *** global data type end
 **********************************/

@@ -3,7 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define BYTE unsigned char
+typedef  unsigned char BYTE;
 
 int mstGetGammaDllVer(); //get version of library
 void mstSetMeasPtnNum(int ptnNum); //set pattern number. 9/12/17/33/65/129/256

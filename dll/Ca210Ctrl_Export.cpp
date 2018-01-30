@@ -36,7 +36,6 @@ Ca210DllCtr::~Ca210DllCtr()
 //---------------------------------------------------------------------------
 bool Ca210DllCtr::caConnect(long lChannelNO)
 {
-    if(this->isLoaded()) return true;
     if(this->isLoaded() && pfcaConnect)
     {
         return pfcaConnect(lChannelNO);
