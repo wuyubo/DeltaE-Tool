@@ -1,6 +1,6 @@
 #pragma once
-
-struct BurnSetting_T
+namespace ddc {
+class BurnSetting_T
 {
 public:
     BurnSetting_T();
@@ -41,4 +41,4 @@ public:
     int m_hdcplastdelay;//ms
     int m_erasehdcpkeydelay;
 };
-
+}//namespace ddc {

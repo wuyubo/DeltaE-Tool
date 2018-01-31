@@ -13,6 +13,13 @@
 #define VERSION  "DeltaE V1.0 @CVTE"
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
+
+#define EN_DEBUG 1
+#if EN_DEBUG
+#define DEBUGMSG(fmt, args...) qDebug(fmt, ##args)
+#else
+#define DEBUGMSG()
+#endif
 /**********************************
 *** global define end
 **********************************/

@@ -57,7 +57,7 @@ int CommonSetpara(QString& text,quint8 *head,quint8& headsize)
     {
         if(x.length()>2)
         {
-            qDebug()<<"error format.";
+            DEBUGMSG()<<"error format.";
             return -1;
         }
     }
@@ -69,7 +69,7 @@ int CommonSetpara(QString& text,quint8 *head,quint8& headsize)
     //some defense condition
     bool *ok=0;
     int value = text.toInt(ok,16);
-    qDebug()<<"para:"<<value;
+    DEBUGMSG()<<"para:"<<value;
     *(head+5) = (quint8)value;
     return 1;
 }
@@ -83,7 +83,7 @@ int SNsetpara(QString& text,quint8 *head,quint8& headsize)
     {
         if(x.length()>2)
         {
-            qDebug()<<"error format.";
+            DEBUGMSG()<<"error format.";
             return -1;
         }
     }

@@ -16,19 +16,19 @@ FTC_STATUS Isp_I2C::findDevice(void)
 	}
 	if (status != FTC_SUCCESS)
 	{
-		qDebug("Can't find any devices");
+		DEBUGMSG("Can't find any devices");
 		return status;
 	}
-	qDebug("The num of device:%d", dwNumDevices);
+	DEBUGMSG("The num of device:%d", dwNumDevices);
 	for (unsigned int i = 0; i < dwNumDevices; i++)
 	{
 		status = I2C_GetDeviceInfo(i, &stFtcDevInfo);
-        qDebug("Device ID: %d, Device Name: %s, Device Type: 0x%X, LocID: 0x%X, Vendor ID: 0x%04X, Product ID: 0x%04X, SN: %s\n",
+        DEBUGMSG("Device ID: %d, Device Name: %s, Device Type: 0x%X, LocID: 0x%X, Vendor ID: 0x%04X, Product ID: 0x%04X, SN: %s\n",
 			i, stFtcDevInfo.szDeviceName, stFtcDevInfo.dwDeviceType, stFtcDevInfo.dwLocationID, stFtcDevInfo.dwProductVendorID >> 16, stFtcDevInfo.dwProductVendorID & 0xFFFF, stFtcDevInfo.szSerialNumber);
 		if (status == FTC_SUCCESS)
 		{
 			dwDeviceNameIndex = i;
-            qDebug("Find device successfully£¬Device ID: %d, Device Name: %s, Device Type: 0x%X, LocID: 0x%X, Vendor ID: 0x%04X, Product ID: 0x%04X, SN: %s\n",
+            DEBUGMSG("Find device successfully£¬Device ID: %d, Device Name: %s, Device Type: 0x%X, LocID: 0x%X, Vendor ID: 0x%04X, Product ID: 0x%04X, SN: %s\n",
                 i, stFtcDevInfo.szDeviceName, stFtcDevInfo.dwDeviceType, stFtcDevInfo.dwLocationID, stFtcDevInfo.dwProductVendorID >> 16, stFtcDevInfo.dwProductVendorID & 0xFFFF, stFtcDevInfo.szSerialNumber);
 			break;
 		}
@@ -47,22 +47,22 @@ FTC_STATUS Isp_I2C::openDevice(FTC_HANDLE &ftHandle, DWORD dwSpeedHz)
 	if (findDevice() == FTC_SUCCESS)
 	{
 		status = I2C_OpenByDeviceNameIndex(dwDeviceNameIndex, &ftHandle);
-		qDebug("\n%s, %d, ftHandle: 0x%X", __FUNCTION__, __LINE__, ftHandle);
+		DEBUGMSG("\n%s, %d, ftHandle: 0x%X", __FUNCTION__, __LINE__, ftHandle);
 		if (status == FTC_SUCCESS)
 		{
 			if (setI2Speed(ftHandle, dwSpeedHz) == FTC_SUCCESS)
 			{
-				qDebug("open device successfully.");
+				DEBUGMSG("open device successfully.");
 			}
 			else
 			{
-				qDebug("open device failed.");
+				DEBUGMSG("open device failed.");
 			}
 		}
 	}
 	else
 	{
-		qDebug("find device failed.");
+		DEBUGMSG("find device failed.");
 	}
 	return status;
 }
@@ -91,7 +91,7 @@ FTC_STATUS Isp_I2C::setI2Speed(FTC_HANDLE ftHandle, DWORD dwSpeedHz)//unit: Hz
 				status = I2C_SetMode(ftHandle, STANDARD_MODE);
 		}
     }
-	qDebug("Change I2C Speed to %fKHz", dwSpeedHz / 1000.0f);
+	DEBUGMSG("Change I2C Speed to %fKHz", dwSpeedHz / 1000.0f);
 	return status;
 }
 
@@ -111,7 +111,7 @@ FTC_STATUS Isp_I2C::write(FTC_HANDLE ftHandle, quint8 SlaveAddr, quint8* pWriteB
 		status = I2C_Isp_Write(ftHandle, SlaveAddr, pWriteBuffer, ByteCount);
 		if (status == FTC_SUCCESS)
 		{
-			qDebug("I2C Write successfully!");
+			DEBUGMSG("I2C Write successfully!");
 			//break;
 		}
 		Sleep(10);

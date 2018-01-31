@@ -1,5 +1,5 @@
 #include "burnsetting.h"
-#include <qdebug.h>
+namespace ddc {
 
 BurnSetting_T::BurnSetting_T()
 {
@@ -126,3 +126,4 @@ bool BurnSetting_T::getCreatlogs(void)
 {
     return m_iscreatelogs;
 }
+}//namespace ddc {
