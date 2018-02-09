@@ -77,9 +77,9 @@ int DeltaEInterface::dteCheck()
     return 0;
 }
 
-int DeltaEInterface::dteAdjust()
+bool DeltaEInterface::dteAdjust()
 {
-    return 0;
+    return pCa210->caSetChannel(0);
 }
 bool DeltaEInterface::connectI2C()
 {

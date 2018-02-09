@@ -19,7 +19,7 @@ public:
     bool dteConnect();
     int dteRun();
     int dteCheck();
-    int dteAdjust();
+    bool dteAdjust();
     //I2C
     bool connectI2C();
     void readI2CSetting();
@@ -32,6 +32,7 @@ private:
     //I2C
     Isp_I2C *i2cdevice;
     BurnSetting_T* burnsettings;
+    QString backupMsg;
 };
 
 #endif // DELTAEINTERFACE_H

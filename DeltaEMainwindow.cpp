@@ -7,10 +7,12 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     ui(new Ui::DeltaEMainWindow)
 {
     ui->setupUi(this);
+    colorUi = new ColorWindow(this);
     connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
     connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(actCheck()));
     connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(actAdjust()));
+    connect(ui->pBtn_Color, SIGNAL(clicked()), this, SLOT(actOpenColor()));
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(actAbout()));
 
@@ -23,6 +25,10 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
 
 DeltaEMainWindow::~DeltaEMainWindow()
 {
+    if(colorUi != NULL)
+    {
+        delete colorUi;
+    }
     delete ui;
 }
 
@@ -53,10 +59,20 @@ void DeltaEMainWindow::actCheck()
 
 void DeltaEMainWindow::actAdjust()
 {
-    pDteInterface->dteAdjust();
-    ui->txt_Massage->setText("adjust");
-}
+    if(pDteInterface->dteAdjust())
+    {
+        ui->txt_Massage->setText("adjust success");
+    }
+    else
+    {
+        ui->txt_Massage->setText("adjust failed");
+    }
 
+}
+void DeltaEMainWindow::actOpenColor()
+{
+    colorUi->show();
+}
 void DeltaEMainWindow::actAbout()
 {
     QMessageBox::about(this, tr("About"),

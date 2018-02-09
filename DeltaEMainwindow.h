@@ -1,8 +1,9 @@
 #ifndef DELTAEMAINWINDOW_H
 #define DELTAEMAINWINDOW_H
 
-#include <QMainWindow>
 #include "DeltaEInterface.h"
+#include "colorwindow.h"
+#include <QMainWindow>
 namespace Ui {
 class DeltaEMainWindow;
 }
@@ -20,10 +21,12 @@ private slots:
     void actCheck();
     void actAdjust();
     void actAbout();
+    void actOpenColor();
 private:
     DeltaEInterface *pDteInterface;
 private:
     Ui::DeltaEMainWindow *ui;
+    ColorWindow *colorUi;
 };
 
 #endif // DELTAEMAINWINDOW_H

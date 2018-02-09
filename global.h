@@ -38,7 +38,24 @@ typedef struct
     quint8* data;
     quint8 size;
 }burndata_t;
+
+typedef struct
+{
+    int red;
+    int green;
+    int blue;
+}cRGB_t;
 //**********************************
 //global data end
 //**********************************
+//**********************************
+//RGB data start
+//**********************************
+#define RGB_COUT   3
+#define DEF_COLOR  0
+
+//**********************************
+//RGB data end
+//**********************************
+
 #endif // GLOBAL_DEFINE_H

@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     dll/Ca210Ctrl_Export.cpp \
     lib/mstgengmactr.cpp \
     lib/isp_iic.cpp \
-    ddc/burnsetting.cpp
+    ddc/burnsetting.cpp \
+    colorwindow.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
@@ -37,9 +38,11 @@ HEADERS  += DeltaEMainwindow.h \
     lib/ftd2xx.h \
     lib/FTI2CDRV.h \
     lib/isp_iic.h \
-    ddc/burnsetting.h
+    ddc/burnsetting.h \
+    colorwindow.h
 
-FORMS    += DeltaEMainwindow.ui
+FORMS    += DeltaEMainwindow.ui \
+    colorwindow.ui
 
 RESOURCES += \
     images.qrc
