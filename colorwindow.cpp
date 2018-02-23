@@ -1,11 +1,7 @@
 #include "colorwindow.h"
 #include "ui_colorwindow.h"
 
-cRGB_t g_rgbList[RGB_COUT] = {
-    {255,0,0},
-    {0,255,0},
-    {0,0,255},
-};
+extern cRGB_t g_rgbList[RGB_COUT];
 #define TIMER_TIMEOUT   (1*1000)
 
 ColorWindow::ColorWindow(QWidget *parent) :
@@ -22,7 +18,7 @@ ColorWindow::ColorWindow(QWidget *parent) :
 
     m_pTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
-    actStartTimer();
+    //actStartTimer();
 }
 
 ColorWindow::~ColorWindow()

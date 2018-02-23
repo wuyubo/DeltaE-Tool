@@ -21,6 +21,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     {
         this->close();
     }
+    connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -37,36 +38,42 @@ void DeltaEMainWindow::actConnect()
 {
     if(pDteInterface->dteConnect())
     {
-        ui->txt_Massage->setText("connect success");
+        strTips.append("connect success!\n");
     }
     else
     {
-        ui->txt_Massage->setText("connect failed");
+        strTips.append("connect failed!\n");
     }
+    showTipsMsg();
 }
 
 void DeltaEMainWindow::actRun()
 {
     pDteInterface->dteRun();
-    ui->txt_Massage->setText("run");
+    strTips.append("Run......\n");
+    strTips.append(pDteInterface->getBackupMsg());
+    showTipsMsg();
 }
 
 void DeltaEMainWindow::actCheck()
 {
     pDteInterface->dteCheck();
-    ui->txt_Massage->setText("Check");
+    strTips.append("Check......\n");
+    strTips.append(pDteInterface->getBackupMsg());
+    showTipsMsg();
 }
 
 void DeltaEMainWindow::actAdjust()
 {
     if(pDteInterface->dteAdjust())
     {
-        ui->txt_Massage->setText("adjust success");
+        strTips.append("adjust success!!!\n");
     }
     else
     {
-        ui->txt_Massage->setText("adjust failed");
+        strTips.append("adjust fail!!!\n");
     }
+    showTipsMsg();
 
 }
 void DeltaEMainWindow::actOpenColor()
@@ -81,4 +88,15 @@ void DeltaEMainWindow::actAbout()
                          "This a DeltaE Tool!\n\n" \
                          "Github:https://github.com/wuyubo/DeltaE-Tool\n"\
                          "Copyright © 2018 CVTE.All rights reserved."));
+}
+
+void DeltaEMainWindow::actSendPat(cRGB_t rgb)
+{
+   colorUi->setRGB(rgb);
+   colorUi->updateColor();
+}
+
+void DeltaEMainWindow::showTipsMsg()
+{
+    ui->txt_Massage->setText(strTips);
 }

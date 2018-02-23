@@ -1,4 +1,10 @@
 #include "DeltaEInterface.h"
+#include <QTime>
+cRGB_t g_rgbList[RGB_COUT] = {
+    {255,255,255},
+    {0,255,0},
+    {0,0,255},
+};
 
 DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
 {
@@ -72,8 +78,9 @@ int DeltaEInterface::dteRun()
 
 int DeltaEInterface::dteCheck()
 {
-    quint8 buf[10] = "asdfaddf";
-    i2cdevice->write(i2cdevice->gethandle(), burnsettings->getSlaveaddr(), buf, 5);
+    //quint8 buf[10] = "asdfaddf";
+   // i2cdevice->write(i2cdevice->gethandle(), burnsettings->getSlaveaddr(), buf, 5);
+    sendPattern(g_rgbList[1]);
     return 0;
 }
 
@@ -118,4 +125,30 @@ void DeltaEInterface::readI2CSetting()
     At_cmds.beginGroup("AT_Cmd");
 
     At_cmds.endGroup();
+}
+QString DeltaEInterface::getBackupMsg()
+{
+    return backupMsg;
+}
+
+void DeltaEInterface::sendPattern(cRGB_t rgb)
+{
+    backupMsg.clear();
+    backupMsg.sprintf("set RGB(%d,%d, %d)\n", rgb.red, rgb.green, rgb.blue);
+    emit sendPatSignal(rgb);
+}
+
+void DeltaEInterface::delayMs(unsigned int msec)
+{
+    QTime dieTime = QTime::currentTime().addMSecs(msec);
+
+    while( QTime::currentTime() < dieTime )
+    {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+}
+
+bool DeltaEInterface::sRGB_DeltaEVerify()
+{
+    return false;
 }

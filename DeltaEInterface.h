@@ -20,11 +20,17 @@ public:
     int dteRun();
     int dteCheck();
     bool dteAdjust();
+    QString getBackupMsg();
     //I2C
     bool connectI2C();
     void readI2CSetting();
-signals:
 
+    //deltaE
+    void sendPattern(cRGB_t rgb);
+    void delayMs(unsigned int msec);
+    bool sRGB_DeltaEVerify();
+signals:
+    void sendPatSignal(cRGB_t rgb);
 public slots:
 private:
     Ca210DllCtr *pCa210;
@@ -33,6 +39,8 @@ private:
     Isp_I2C *i2cdevice;
     BurnSetting_T* burnsettings;
     QString backupMsg;
+    //deltaE
+    double sRGBResult;
 };
 
 #endif // DELTAEINTERFACE_H

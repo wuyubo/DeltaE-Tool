@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     lib/mstgengmactr.cpp \
     lib/isp_iic.cpp \
     ddc/burnsetting.cpp \
-    colorwindow.cpp
+    colorwindow.cpp \
+    deltaE/DeltaE.c
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
@@ -39,7 +40,8 @@ HEADERS  += DeltaEMainwindow.h \
     lib/FTI2CDRV.h \
     lib/isp_iic.h \
     ddc/burnsetting.h \
-    colorwindow.h
+    colorwindow.h \
+    deltaE/DeltaE.h
 
 FORMS    += DeltaEMainwindow.ui \
     colorwindow.ui

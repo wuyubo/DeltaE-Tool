@@ -22,11 +22,15 @@ private slots:
     void actAdjust();
     void actAbout();
     void actOpenColor();
+    void actSendPat(cRGB_t rgb);
 private:
-    DeltaEInterface *pDteInterface;
+    void showTipsMsg();
+
 private:
     Ui::DeltaEMainWindow *ui;
     ColorWindow *colorUi;
+    DeltaEInterface *pDteInterface;
+    QString strTips;
 };
 
 #endif // DELTAEMAINWINDOW_H
