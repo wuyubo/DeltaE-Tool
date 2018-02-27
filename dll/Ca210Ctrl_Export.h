@@ -52,13 +52,19 @@ typedef struct tagCA210DATASTRUCT
     long    lRjeita;
 }CA210DATASTRUCT, *LPCA210DATASTRUCT;
 
+typedef struct tagXYZCOLOR{
+    float   fX;
+    float   fY;
+    float   fZ;
+}XYZCOLOR;
+
 //define function point
 typedef bool (*func_caConnect)(long lChannelNO);
 typedef bool (*func_caSetChannel)(long lChannelNO);
 typedef void (*func_caDisConnect)();
 typedef CA210DATASTRUCT (*func_caMeasure)();
 typedef void (*func_caZeroCal)();
-//typedef XYZCOLOR (*func_caGetAverageMeasureXYZ)(INT nTimes);
+typedef XYZCOLOR (*func_caGetAverageMeasureXYZ)(int nTimes);
 typedef void (*func_caSetSyncMode)(int nSyncMode);
 typedef void (*func_caSetSpeed)(int nSpeed);
 typedef int  (*func_caGetCATypeName)(BYTE *bCAType);
@@ -75,11 +81,12 @@ public:
     void caDisConnect();
     LPCA210DATASTRUCT caMeasure();
     void caZeroCal();
-    //XYZCOLOR caGetAverageMeasureXYZ(int nTimes);
+    XYZCOLOR caGetAverageMeasureXYZ(int nTimes);
     void caSetSyncMode(int nSyncMode);
     void caSetSpeed(int nSpeed);
     int  caGetCATypeName(BYTE *bCAType);
     int  caGetCAVersionName(BYTE *bCAVersion);
+    bool isConnect()const;
 private:
     CA210DATASTRUCT c210_data;
     func_caConnect pfcaConnect;
@@ -87,12 +94,12 @@ private:
     func_caDisConnect pfcaDisConnect;
     func_caMeasure pfcaMeasure;
     func_caZeroCal pfcaZeroCal;
-    //func_caGetAverageMeasureXYZ pfcaGetAverageMeasureXYZ;
+    func_caGetAverageMeasureXYZ pfcaGetAverageMeasureXYZ;
     func_caSetSyncMode pfcaSetSyncMode;
     func_caSetSpeed pfcaSetSpeed;
     func_caGetCATypeName pfcaGetCATypeName;
     func_caGetCAVersionName pfcaGetCAVersionName;
-
+    bool bIsConnect;
 };
 }
 #endif //#ifndef _CA210CTRL_H_

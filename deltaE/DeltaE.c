@@ -1,41 +1,7 @@
-typedef struct
-{
-	float fRaw_X;
-	float fRaw_Y;	
-	float fRaw_Z;	
-	float fRelative_X;
-	float fRelative_Y;	
-	float fRelative_Z;		
-	float fFn_X;
-	float fFn_Y;	
-	float fFn_Z;		
-	float fTestDisplay_L;
-	float fTestDisplay_a;	
-	float fTestDisplay_b;		
-	float fDelta_L;
-	float fDelta_a;	
-	float fDelta_b;			
-	float fDeltaE_CIE76;
-	float fMeas_C;	
-	float fDelta_C;		
-	float fDelta_H;				
-	float fComp_L;	
-	float fComp_C;		
-	float fComp_H;		
-	
-	float fDelta_E;		//final result
-}sRGBDeltaStruct;
+ï»¿#include "DeltaE.h"
+#include<math.h>
 
-typedef struct
-{
-
-    float L;
-    float a;
-    float b;
-}RefsRGBDeltaStruct;
-
-float sRGBDeltaStruct sRGBDeltaE[32] = {0};
-float RefsRGBDeltaStruct Refer_sRGBDelta[32] = 
+RefsRGBDeltaStruct Refer_sRGBDelta[32] =
 {
 {12.25,0.00,0.00,},
 {27.09,0.00,0.00,},
@@ -70,7 +36,7 @@ float RefsRGBDeltaStruct Refer_sRGBDelta[32] =
 {91.12,-48.08,-14.13,},
 {93.16,-35.23,-10.87,},
 };
-float fRefer_DeltaC[32]
+double fRefer_DeltaC[32] =
 {
 0.00,
 0.00,
@@ -105,20 +71,21 @@ float fRefer_DeltaC[32]
 50.12,
 36.87,
 };
+
 const float fRefSRGB_100W_X = 0.95;
 const float fRefSRGB_100W_Y = 1.00;
 const float fRefSRGB_100W_Z = 1.09;
+sRGBDeltaStruct sRGBDeltaE[32]={0,0,0};
 
-
-float GetRelativ_XYZ(float fRaw,float fReference)
+double GetRelativ_XYZ(double fRaw,double fReference)
 {
 	return fRaw/fReference;
 }
 
-float GetFn_XYZ(float fX,float fReference)
+double GetFn_XYZ(double fX,double fReference)
 {
-	float fResult;
-	float fTmp = fX/fReference;
+    double fResult;
+    double fTmp = fX/fReference;
   if(fTmp<= 0.008856)
  	{
  		fResult = (7.787*fTmp)+0.13793;
@@ -130,9 +97,9 @@ float GetFn_XYZ(float fX,float fReference)
 	return fResult;
 }
 
-float GetTestDisplay_L(float fY)
+double GetTestDisplay_L(double fY)
 {
-	float fResult;
+    double fResult;
   if(fY <= 0.008856)
  	{
  		fResult = 9.033*fY;
@@ -143,36 +110,36 @@ float GetTestDisplay_L(float fY)
  	}
 	return fResult*100;
 }
-float GetTestDisplay_a(float fFnX,float fFnY)
+double GetTestDisplay_a(double fFnX,double fFnY)
 {
-	float fResult;
+    double fResult;
 	fResult = 500*(fFnX - fFnY);
 
 	return fResult;
 }
-float GetTestDisplay_b(float fFnY,float fFnZ)
+double GetTestDisplay_b(double fFnY,double fFnZ)
 {
-	float fResult;
+    double fResult;
 	fResult = 200*(fFnY - fFnZ);
 
 	return fResult;
 }
-float GetDelta_L(int pattern_index,float fTestDisplay_L)
+double GetDelta_L(int pattern_index,double fTestDisplay_L)
 {
 	return fTestDisplay_L-Refer_sRGBDelta[pattern_index].L;
 }
-float GetDelta_a(int pattern_index,float fTestDisplay_a)
+double GetDelta_a(int pattern_index,double fTestDisplay_a)
 {
 	return fTestDisplay_a-Refer_sRGBDelta[pattern_index].a;
 }
-float GetDelta_b(int pattern_index,float fTestDisplay_b)
+double GetDelta_b(int pattern_index,double fTestDisplay_b)
 {
 	return fTestDisplay_b-Refer_sRGBDelta[pattern_index].b;
 }
-float GetDeltaE_CIE76(float fDelta_L,float fDelta_a,float fDelta_b)
+double GetDeltaE_CIE76(double fDelta_L,double fDelta_a,double fDelta_b)
 {
-  float fResult;
-  float fTmpL,fTmpa,fTmpb;
+  double fResult;
+  double fTmpL,fTmpa,fTmpb;
   fTmpL = pow(fDelta_L,2);
   fTmpa = pow(fDelta_a,2);
   fTmpb = pow(fDelta_b,2);
@@ -181,23 +148,23 @@ float GetDeltaE_CIE76(float fDelta_L,float fDelta_a,float fDelta_b)
 	return fResult;
 }
 
-float GetMeas_C(float fTestDisplay_a,float fTestDisplay_b )
+double GetMeas_C(double fTestDisplay_a,double fTestDisplay_b )
 {
-  float fResult;
+  double fResult;
   fResult = pow(fTestDisplay_a,2)+pow(fTestDisplay_b,2);
   fResult = sqrt (fResult);
 	return fResult;
 }
-float GetDelta_C(int pattern_index,float fMeas_C )
+double GetDelta_C(int pattern_index,double fMeas_C )
 {
-  float fResult;
+  double fResult;
   fResult = fMeas_C - fRefer_DeltaC[pattern_index];
 	return fResult;
 }
-float GetDelta_H(float fDeltaE_CIE1976,float fDelta_L,float fDelta_C)
+double GetDelta_H(double fDeltaE_CIE1976,double fDelta_L,double fDelta_C)
 {
-  float fResult;
-  float fTmpE,fTmpL,fTmpC;
+  double fResult;
+  double fTmpE,fTmpL,fTmpC;
   fTmpE = pow(fDeltaE_CIE1976,2);
   fTmpL = pow(fDelta_L,2);
   fTmpC = pow(fDelta_C,2);
@@ -214,50 +181,87 @@ float GetDelta_H(float fDeltaE_CIE1976,float fDelta_L,float fDelta_C)
 	return fResult;
 }
 
-float GetComp_C(int pattern_index,float fDelta_C )
+double GetComp_C(int pattern_index,double fDelta_C )
 {
-  float fResult;
+  double fResult;
   fResult = 1+0.045*fabs(fRefer_DeltaC[pattern_index]);
   fResult = fDelta_C/fResult;
 	return fResult;
 }
 
-float GetComp_H(int pattern_index,float fDelta_H )
+double GetComp_H(int pattern_index,double fDelta_H )
 {
-  float fResult;
+  double fResult;
   fResult = 1+0.015*fabs(fRefer_DeltaC[pattern_index]);
   fResult = fDelta_H/fResult;
 	return fResult;
 }
 
-float GetDeltaE_CIE94(float fComp_L,float fComp_C,float fComp_H)
+double GetDeltaE_CIE94(double fComp_L,double fComp_C,double fComp_H)
 {
-  float fResult;
-  float fTmpL,fTmpC,fTmpH;
+  double fResult;
+  double fTmpL,fTmpC,fTmpH;
   fTmpL = pow(fComp_L,2);
-  fTmpa = pow(fComp_C,2);
-  fTmpb = pow(fComp_H,2);
-  fResult = fTmpL+fTmpa+fTmpb;
+  fTmpC = pow(fComp_C,2);
+  fTmpH = pow(fComp_H,2);
+  fResult = fTmpL+fTmpC+fTmpH;
   fResult = sqrt (fResult);
 	return fResult;
 }
-	
-float sRGB_DeltaEVerify(void)
+float GetDeltaE_OnePatCIE94(int pattern_index, float fX, float fY, float fZ, float f100W_Raw_Y)
+{
+
+    sRGBDeltaE[pattern_index].fRaw_X = fX;
+    sRGBDeltaE[pattern_index].fRaw_Y = fY;
+    sRGBDeltaE[pattern_index].fRaw_Z = fZ;
+
+    sRGBDeltaE[pattern_index].fRelative_X = GetRelativ_XYZ(sRGBDeltaE[pattern_index].fRaw_X,f100W_Raw_Y);
+    sRGBDeltaE[pattern_index].fRelative_Y = GetRelativ_XYZ(sRGBDeltaE[pattern_index].fRaw_Y,f100W_Raw_Y);
+    sRGBDeltaE[pattern_index].fRelative_Z = GetRelativ_XYZ(sRGBDeltaE[pattern_index].fRaw_Z,f100W_Raw_Y);
+
+    sRGBDeltaE[pattern_index].fFn_X = GetFn_XYZ(sRGBDeltaE[pattern_index].fRelative_X,fRefSRGB_100W_X);
+    sRGBDeltaE[pattern_index].fFn_Y = GetFn_XYZ(sRGBDeltaE[pattern_index].fRelative_Y,fRefSRGB_100W_Y);
+    sRGBDeltaE[pattern_index].fFn_Z = GetFn_XYZ(sRGBDeltaE[pattern_index].fRelative_Z,fRefSRGB_100W_Z);
+
+    sRGBDeltaE[pattern_index].fTestDisplay_L = GetTestDisplay_L(sRGBDeltaE[pattern_index].fRelative_Y);
+    sRGBDeltaE[pattern_index].fTestDisplay_a = GetTestDisplay_a(sRGBDeltaE[pattern_index].fFn_X,sRGBDeltaE[pattern_index].fFn_Y);
+    sRGBDeltaE[pattern_index].fTestDisplay_b = GetTestDisplay_b(sRGBDeltaE[pattern_index].fFn_Y,sRGBDeltaE[pattern_index].fFn_Z);
+
+    sRGBDeltaE[pattern_index].fDelta_L = GetDelta_L(pattern_index,sRGBDeltaE[pattern_index].fTestDisplay_L);
+    sRGBDeltaE[pattern_index].fDelta_a = GetDelta_a(pattern_index,sRGBDeltaE[pattern_index].fTestDisplay_a);
+    sRGBDeltaE[pattern_index].fDelta_b = GetDelta_b(pattern_index,sRGBDeltaE[pattern_index].fTestDisplay_b);
+
+    sRGBDeltaE[pattern_index].fDeltaE_CIE76 = GetDeltaE_CIE76(sRGBDeltaE[pattern_index].fDelta_L,sRGBDeltaE[pattern_index].fDelta_a,sRGBDeltaE[pattern_index].fDelta_b);
+
+    sRGBDeltaE[pattern_index].fMeas_C = GetMeas_C(sRGBDeltaE[pattern_index].fTestDisplay_a,sRGBDeltaE[pattern_index].fTestDisplay_b);
+    sRGBDeltaE[pattern_index].fDelta_C = GetDelta_C(pattern_index,sRGBDeltaE[pattern_index].fMeas_C);
+    sRGBDeltaE[pattern_index].fDelta_H = GetDelta_H(sRGBDeltaE[pattern_index].fDeltaE_CIE76,sRGBDeltaE[pattern_index].fDelta_L,sRGBDeltaE[pattern_index].fDelta_C);
+
+    sRGBDeltaE[pattern_index].fComp_L = sRGBDeltaE[pattern_index].fDelta_L;
+    sRGBDeltaE[pattern_index].fComp_C = GetComp_C(pattern_index,sRGBDeltaE[pattern_index].fDelta_C);
+    sRGBDeltaE[pattern_index].fComp_H = GetComp_H(pattern_index,sRGBDeltaE[pattern_index].fDelta_H);
+
+    sRGBDeltaE[pattern_index].fDelta_E = GetDeltaE_CIE94(sRGBDeltaE[pattern_index].fComp_L,sRGBDeltaE[pattern_index].fComp_C,sRGBDeltaE[pattern_index].fComp_H);
+    return sRGBDeltaE[pattern_index].fDelta_E;
+}
+
+#if 0
+double sRGB_DeltaEVerify(void)
 {
 	int pattern_index=0;
-	float fResult = 0;
-	float fTmpL,fTmpC,fTmpH;
-	float f100W_Raw_Y = 0;
+    double fResult = 0;
+    double fTmpL,fTmpC,fTmpH;
+    double f100W_Raw_Y = 0;
 		.....;//SEND 100% White pattern
-		.....;//ÑÓÊ±300ms		
-		.....;//»ñÈ¡CA210 µÄXYZÖµ
+		.....;//å»¶æ—¶300ms		
+		.....;//èŽ·å–CA210 çš„XYZå€¼
        f100W_Raw_Y = ....;//		
 	for(pattern_index = 0;pattern_index<32;pattern_index++)
 	{
 
-		.....;//·¢ËÍ²âÊÔPattern
-		.....;//ÑÓÊ±300ms
-		.....;//»ñÈ¡CA210 µÄXYZÖµ
+		.....;//å‘é€æµ‹è¯•Pattern
+		.....;//å»¶æ—¶300ms
+		.....;//èŽ·å–CA210 çš„XYZå€¼
 		sRGBDeltaE[pattern_index].fRaw_X = .....;
 		sRGBDeltaE[pattern_index].fRaw_Y = .....;
 		sRGBDeltaE[pattern_index].fRaw_Z = .....;
@@ -296,3 +300,4 @@ float sRGB_DeltaEVerify(void)
 		fResult = fResult/32;
 		return fResult;
 }
+#endif

@@ -22,6 +22,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
         this->close();
     }
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
+    connect(pDteInterface, SIGNAL(updateMsgSignal()), this, SLOT(actUpdateMsg()));
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -49,10 +50,21 @@ void DeltaEMainWindow::actConnect()
 
 void DeltaEMainWindow::actRun()
 {
-    pDteInterface->dteRun();
-    strTips.append("Run......\n");
-    strTips.append(pDteInterface->getBackupMsg());
+    bool bResult = false;
+    strTips.append("Running......\n");
     showTipsMsg();
+    ui->pBtn_Run->setEnabled(false);
+    bResult = pDteInterface->dteRun();
+    strTips.append(pDteInterface->getBackupMsg());
+    if(bResult)
+    {
+       strTips.append("result PASS!!!\n");
+    }else
+    {
+       strTips.append("result FAIL!!!\n");
+    }
+    showTipsMsg();
+    ui->pBtn_Run->setEnabled(true);
 }
 
 void DeltaEMainWindow::actCheck()
@@ -95,8 +107,17 @@ void DeltaEMainWindow::actSendPat(cRGB_t rgb)
    colorUi->setRGB(rgb);
    colorUi->updateColor();
 }
+void DeltaEMainWindow::actUpdateMsg()
+{
+    strTips.append(pDteInterface->getBackupMsg());
+    showTipsMsg();
+}
 
 void DeltaEMainWindow::showTipsMsg()
 {
     ui->txt_Massage->setText(strTips);
+    //移动光标到末尾
+    QTextCursor cursor = ui->txt_Massage->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    ui->txt_Massage->setTextCursor(cursor);
 }

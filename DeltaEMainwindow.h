@@ -23,6 +23,7 @@ private slots:
     void actAbout();
     void actOpenColor();
     void actSendPat(cRGB_t rgb);
+    void actUpdateMsg();
 private:
     void showTipsMsg();
 

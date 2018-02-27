@@ -11,12 +11,12 @@ Ca210DllCtr::Ca210DllCtr(const QString& fileName):QLibrary(fileName)
         pfcaDisConnect = (func_caDisConnect)this->resolve("ca210DisConnect");
         pfcaMeasure = (func_caMeasure)this->resolve("ca210Measure");
         pfcaZeroCal = (func_caZeroCal)this->resolve("ca210ZeroCal");
-        //pfcaGetAverageMeasureXYZ = (func_caGetAverageMeasureXYZ)this->resolve("ca210GetAverageMeasureXYZ");
+        pfcaGetAverageMeasureXYZ = (func_caGetAverageMeasureXYZ)this->resolve("ca210GetAverageMeasureXYZ");
         pfcaSetSyncMode = (func_caSetSyncMode)this->resolve("ca210SetSyncMode");
         pfcaSetSpeed = (func_caSetSpeed)this->resolve("ca210SetSpeed");
         pfcaGetCATypeName = (func_caGetCATypeName)this->resolve("ca210GetCATypeName");
         pfcaGetCAVersionName = (func_caGetCAVersionName)this->resolve("ca210GetCAVersionName");
-
+        bIsConnect = false;
     }
 }
 
@@ -38,9 +38,9 @@ bool Ca210DllCtr::caConnect(long lChannelNO)
 {
     if(this->isLoaded() && pfcaConnect)
     {
-        return pfcaConnect(lChannelNO);
+       bIsConnect = pfcaConnect(lChannelNO);
     }
-    return false;
+    return bIsConnect;
 }
 
 //---------------------------------------------------------------------------
@@ -50,9 +50,9 @@ bool Ca210DllCtr::caConnect(long lChannelNO)
 //---------------------------------------------------------------------------
 bool Ca210DllCtr::caSetChannel(long lChannelNO)
 {
-    if(this->isLoaded() && pfcaConnect)
+    if(this->isLoaded() && pfcaSetChannel)
     {
-       return pfcaConnect(lChannelNO);
+       return pfcaSetChannel(lChannelNO);
     }
     return false;
 }
@@ -103,7 +103,15 @@ void Ca210DllCtr::caZeroCal()
 // Input Value  : None
 // Output Value : None
 //---------------------------------------------------------------------------
-//XYZCOLOR caGetAverageMeasureXYZ(int nTimes);
+XYZCOLOR Ca210DllCtr::caGetAverageMeasureXYZ(int nTimes)
+{
+    XYZCOLOR xyz = {0,0,0};
+    if(this->isLoaded()&&pfcaSetSyncMode)
+    {
+      return pfcaGetAverageMeasureXYZ(nTimes);
+    }
+    return xyz;
+}
 
 //---------------------------------------------------------------------------
 // Description  : Set Measure Sync Mode
@@ -158,5 +166,8 @@ int  Ca210DllCtr::caGetCAVersionName(BYTE *bCAVersion)
     }
     return 0;
 }
-
+bool Ca210DllCtr::isConnect() const
+{
+    return bIsConnect;
+}
 } //name space ca210

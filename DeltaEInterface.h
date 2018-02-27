@@ -6,6 +6,7 @@
 #include "lib/isp_iic.h"
 #include "ddc/ddc_aps.h"
 #include "ddc/burnsetting.h"
+#include "deltaE/DeltaE.h"
 #include <QObject>
 using namespace ca210;
 using namespace gengma;
@@ -21,6 +22,7 @@ public:
     int dteCheck();
     bool dteAdjust();
     QString getBackupMsg();
+    void showMsg(QString msg);
     //I2C
     bool connectI2C();
     void readI2CSetting();
@@ -31,6 +33,7 @@ public:
     bool sRGB_DeltaEVerify();
 signals:
     void sendPatSignal(cRGB_t rgb);
+    void updateMsgSignal();
 public slots:
 private:
     Ca210DllCtr *pCa210;

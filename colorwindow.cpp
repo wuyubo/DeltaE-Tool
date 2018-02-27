@@ -1,7 +1,7 @@
 #include "colorwindow.h"
 #include "ui_colorwindow.h"
 
-extern cRGB_t g_rgbList[RGB_COUT];
+extern cRGB_t g_PatternList[RGB_COUT];
 #define TIMER_TIMEOUT   (1*1000)
 
 ColorWindow::ColorWindow(QWidget *parent) :
@@ -13,7 +13,7 @@ ColorWindow::ColorWindow(QWidget *parent) :
     connect(ui->btn_next, SIGNAL(clicked()), this, SLOT(nextColor()));
     connect(ui->btn_pause, SIGNAL(clicked()), this, SLOT(actStopTimer()));
 
-    setRGB(g_rgbList[DEF_COLOR]);
+    setRGB(g_PatternList[DEF_COLOR]);
     updateColor();
 
     m_pTimer = new QTimer(this);
@@ -48,7 +48,7 @@ void ColorWindow::nextColor()
 {
     static int i = DEF_COLOR+1;
 
-    setRGB(g_rgbList[i]);
+    setRGB(g_PatternList[i]);
     updateColor();
 
     if(++i == RGB_COUT) i = 0;

@@ -18,7 +18,7 @@
 #if EN_DEBUG
 #define DEBUGMSG(fmt, args...) qDebug(fmt, ##args)
 #else
-#define DEBUGMSG()
+#define DEBUGMSG(fmt, args...)
 #endif
 /**********************************
 *** global define end
@@ -51,11 +51,17 @@ typedef struct
 //**********************************
 //RGB data start
 //**********************************
-#define RGB_COUT   3
+#define RGB_COUT   32
 #define DEF_COLOR  0
 
 //**********************************
 //RGB data end
 //**********************************
-
+//**********************************
+//CA210 data start
+//**********************************
+#define CA210_CHANNEL  0
+//**********************************
+//CA210 data end
+//**********************************
 #endif // GLOBAL_DEFINE_H
