@@ -55,7 +55,6 @@ void DeltaEMainWindow::actRun()
     showTipsMsg();
     ui->pBtn_Run->setEnabled(false);
     bResult = pDteInterface->dteRun();
-    strTips.append(pDteInterface->getBackupMsg());
     if(bResult)
     {
        strTips.append("result PASS!!!\n");
@@ -69,10 +68,20 @@ void DeltaEMainWindow::actRun()
 
 void DeltaEMainWindow::actCheck()
 {
-    pDteInterface->dteCheck();
+    bool bResult = false;
     strTips.append("Check......\n");
-    strTips.append(pDteInterface->getBackupMsg());
     showTipsMsg();
+    ui->pBtn_Check->setEnabled(false);
+    bResult = pDteInterface->dteCheck();
+    if(bResult)
+    {
+       strTips.append("result PASS!!!\n");
+    }else
+    {
+       strTips.append("result FAIL!!!\n");
+    }
+    showTipsMsg();
+    ui->pBtn_Check->setEnabled(true);
 }
 
 void DeltaEMainWindow::actAdjust()

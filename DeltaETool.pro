@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     lib/isp_iic.cpp \
     ddc/burnsetting.cpp \
     colorwindow.cpp \
-    deltaE/DeltaE.c
+    deltaE/DeltaE.c \
+    data/data.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
@@ -41,7 +42,8 @@ HEADERS  += DeltaEMainwindow.h \
     lib/isp_iic.h \
     ddc/burnsetting.h \
     colorwindow.h \
-    deltaE/DeltaE.h
+    deltaE/DeltaE.h \
+    data/data.h
 
 FORMS    += DeltaEMainwindow.ui \
     colorwindow.ui
@@ -58,3 +60,6 @@ win32: LIBS += -L$$PWD/lib/ -lFTCI2C
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
+
+DISTFILES += \
+    data/sRGB_pattern.cvt

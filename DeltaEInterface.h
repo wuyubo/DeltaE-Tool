@@ -7,6 +7,7 @@
 #include "ddc/ddc_aps.h"
 #include "ddc/burnsetting.h"
 #include "deltaE/DeltaE.h"
+#include "data/data.h"
 #include <QObject>
 using namespace ca210;
 using namespace gengma;
@@ -31,6 +32,10 @@ public:
     void sendPattern(cRGB_t rgb);
     void delayMs(unsigned int msec);
     bool sRGB_DeltaEVerify();
+    bool sRGB_DeltaEVerifyStep0();
+    bool sRGB_DeltaEVerifyStep1();
+    bool sRGB_DeltaEVerifyStep2();
+    bool sRGB_DeltaEVerifyStep3();
 signals:
     void sendPatSignal(cRGB_t rgb);
     void updateMsgSignal();
@@ -44,6 +49,10 @@ private:
     QString backupMsg;
     //deltaE
     double sRGBResult;
+    double m_d100W_Raw_Y;
+
+    //data
+    Data *m_pdata;
 };
 
 #endif // DELTAEINTERFACE_H

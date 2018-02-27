@@ -1,6 +1,6 @@
 #include "DeltaEInterface.h"
 #include <QTime>
-cRGB_t g_PatternList[RGB_COUT] = {
+cRGB_t g_PatternList[_MAX_PATTERN_COUT] = {
     {32, 32, 32},
     {64, 64, 64},
     {96, 96, 96},
@@ -82,6 +82,11 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     }
     readI2CSetting();
     i2cdevice = new Isp_I2C();
+    m_pdata = new Data(this);
+    if(m_pdata == NULL)
+    {
+        exit(-1);
+    }
 }
 
 DeltaEInterface::~DeltaEInterface()
@@ -146,9 +151,7 @@ int DeltaEInterface::dteRun()
 
 int DeltaEInterface::dteCheck()
 {
-    //quint8 buf[10] = "asdfaddf";
-   // i2cdevice->write(i2cdevice->gethandle(), burnsettings->getSlaveaddr(), buf, 5);
-    return 0;
+    return sRGB_DeltaEVerify();;
 }
 
 bool DeltaEInterface::dteAdjust()
@@ -221,48 +224,69 @@ void DeltaEInterface::delayMs(unsigned int msec)
 
 bool DeltaEInterface::sRGB_DeltaEVerify()
 {
-    int pattern_index=0;
-    float f100W_Raw_Y = 0;
-    QString temp;
-    //LPCA210DATASTRUCT pca210Data;
-    XYZCOLOR color={0,0,0};
+
     if(!pCa210 || !pCa210->isConnect())
     {
-       backupMsg.clear();
-       backupMsg.sprintf("please connect Ca210...\n");
+       showMsg("please connect Ca210...\n");
        return false;
     }
+    sRGB_DeltaEVerifyStep0();
+    sRGB_DeltaEVerifyStep1();
+    sRGB_DeltaEVerifyStep2();
+    return sRGB_DeltaEVerifyStep3();
+}
+bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
+{
+    QString temp;
     sRGBResult = 0;
+    m_pdata->update_PatRgb(); //load pattern file
+    temp.sprintf("Pattern Count: %d\n", m_pdata->pat_RgbCount);
+    showMsg(temp);
+    return true;
+}
+
+bool DeltaEInterface::sRGB_DeltaEVerifyStep1()
+{
+    XYZCOLOR color={0,0,0};
+    QString temp;
     sendPattern(pat_White);//SEND 100% White pattern
     delayMs(300);//延时300ms
-    //pca210Data = pCa210->caMeasure();
     color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
-    f100W_Raw_Y = color.fX;
-
-    temp.sprintf("get white pattern for Ca210 XYZ(%f, %f, %f) \n",
-                      color.fX, color.fY, color.fZ);
+    m_d100W_Raw_Y = color.fX;
+    temp.sprintf("100\% White Y : %lf \n", m_d100W_Raw_Y);
     showMsg(temp);
+    return true;
+}
 
-    for(pattern_index = 0;pattern_index<32;pattern_index++)
+bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
+{
+    XYZCOLOR color={0,0,0};
+    QString temp;
+    int pattern_index=0;
+    float result;
+    for(pattern_index = 0;pattern_index < m_pdata->pat_RgbCount; pattern_index++)
     {
-        sendPattern(g_PatternList[pattern_index]);//发送测试Pattern
+        sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
         delayMs(300);//延时300ms
         color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
        // color = testXYZ[pattern_index];
-        sRGBResult += GetDeltaE_OnePatCIE94(pattern_index, color.fX, color.fY, color.fZ, f100W_Raw_Y);
-        temp.clear();
-        temp.sprintf("%d -(%lf, %lf, %lf) : %lf\n",
-                     pattern_index+1, color.fX, color.fY, color.fZ, GetDeltaE_OnePatCIE94(pattern_index, color.fX, color.fY, color.fZ, f100W_Raw_Y));
+        result = GetDeltaE_OnePatCIE94(pattern_index, color.fX, color.fY, color.fZ, m_d100W_Raw_Y);
+        sRGBResult += result;
+        temp.sprintf("%d -(%lf, %lf, %lf) : %lf\n", pattern_index+1, color.fX, color.fY, color.fZ, result);
         showMsg(temp);
     }
+    return true;
+}
+
+bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
+{
+    QString temp;
     if(sRGBResult > 0)
     {
-        sRGBResult = sRGBResult/32;
+        sRGBResult = sRGBResult/m_pdata->pat_RgbCount;
     }
-    temp.clear();
     temp.sprintf("result is %lf\n", sRGBResult);
-    backupMsg.clear();
-    backupMsg.append(temp);
+    showMsg(temp);
     if(sRGBResult < 2.0)
     {
         return true;

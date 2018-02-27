@@ -14,6 +14,8 @@
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
+#define SRGB_PATTERN_PATN "sRGB_pattern.cvt"
+
 #define EN_DEBUG 1
 #if EN_DEBUG
 #define DEBUGMSG(fmt, args...) qDebug(fmt, ##args)
@@ -51,7 +53,7 @@ typedef struct
 //**********************************
 //RGB data start
 //**********************************
-#define RGB_COUT   32
+#define _MAX_PATTERN_COUT   100
 #define DEF_COLOR  0
 
 //**********************************
