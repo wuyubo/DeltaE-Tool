@@ -7,6 +7,7 @@
 #include <qfile.h>
 #include <qglobal.h>
 #include <QDataStream>
+#include <QMessageBox>
 /**********************************
 *** mglobal define here
 **********************************/

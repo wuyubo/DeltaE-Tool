@@ -7,7 +7,7 @@ typedef  unsigned char BYTE;
 
 int mstGetGammaDllVer(); //get version of library
 void mstSetMeasPtnNum(int ptnNum); //set pattern number. 9/12/17/33/65/129/256
-void mstGenGammaData(double *GmanIn, BYTE *GmaOut, float sRgbCM); //GET DELTA-E gamma table and color sRGB
+void mstGenGammaData(double *GmanIn, BYTE *GmaOut, BYTE* sRgbCM); //GET DELTA-E gamma table and color sRGB
 void mstExGenGammaData(double *GmaIn, BYTE *GmaOut, float GmaPwr);//Get gamma table by specified gamma power and color temperature
 // Get delta-E gamma table by specified gamma power adn color temperature
 void mstExGenGammaData_CT(double *GmaIn, BYTE *GmaOut, float GmaPwr, int colorTemp);
