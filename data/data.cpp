@@ -66,7 +66,6 @@ bool Data::load_PatRgb()
             if (-1 != LineLen)                          //---读取成功，将返回读取的字节，读取失败，将返回-1
             {
                 temp = QString(QLatin1String(cBuf));
-                temp.replace(QString(" "), QString(""));
                 if(index == 0)
                 {
                     pat_RgbCount = temp.toInt();
@@ -74,7 +73,7 @@ bool Data::load_PatRgb()
                 else if(index > 1)
                 {
                     ListRgb.clear();
-                    ListRgb = temp.split(",");
+                    ListRgb = temp.split(' ', QString::SkipEmptyParts);//temp.split(",");
                     if(ListRgb.length() < 4)
                     {
                         continue;
