@@ -33,9 +33,9 @@ public:
     bool connectI2C();
     BurnSetting_T * readI2CSetting();
     //ddc
-    bool strCmdSend(QString CmdStr);
+    bool cmdSend(QString CmdStr);
     bool cmdSend(burnCmd_t *cmd);
-    bool dataSend(burnCmd_t *cmd,quint8 *data, quint32 size,quint8 source);
+    bool cmdSend(burnCmd_t *cmd,quint8 *data, quint32 size,quint8 source = 1);
     bool sRGB_DeltaERun();
     bool sRGB_DeltaERunstep0();
     bool sRGB_DeltaERunstep1();

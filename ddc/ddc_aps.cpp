@@ -21,6 +21,10 @@ quint8 writeRGBPaternCmd[]={0xCC, 0x31, 0x00, 0x00, 0x00};
 //退出Pattern 模式，退出调试模式
 quint8 exitAutoGammaCmd[]={0xCC, 0x30, 0X00};
 quint8 exitDebugCmd[]={0xCC, 0x90, 0X00};
+quint8 WRPostGmaCmd[]={0xCC, 0x32, 0X00, 0X00, 0X00, 0X00, 0X00};
+quint8 WRColorMatrixCmd[]={0xCC, 0x84, 0X00};
+quint8 ReadACKCmd[]={0xCC, 0x8E};
+quint8 SaveGmaCmd[]={0xCC, 0x33, 0x00, 0x00, 0x16};
 
 //verify function declarations
 bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
@@ -217,7 +221,64 @@ burnCmd_t exitDeltaEAutoGammacmd =
     COMMON_DELAY,
     COMMON_DELAY,
 };
+burnCmd_t writeDeltaEPostGammacmd =
+{
+    QString("WRPostGammaStatus"),
+    QString("write the DeltaE Post Gamma , so can the other instructions execute!"),
+    nullptr,
+    WRPostGmaCmd,
+    sizeof(WRPostGmaCmd),
+    &CommonAssemble_Alloc,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+burnCmd_t writeDeltaEColorMatrixcmd =
+{
+    QString("WRColorMatrixStatus"),
+    QString("Write the DeltaE Color Matrix, so can the other instructions execute!"),
+    nullptr,
+    WRColorMatrixCmd,
+    sizeof(WRColorMatrixCmd),
+    &CommonAssemble_Alloc,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
 
+burnCmd_t readDeltaEACKcmd =
+{
+    QString("ReadACKStatus"),
+    QString("Read the DeltaE ACK, so can the other instructions execute!"),
+    nullptr,
+    ReadACKCmd,
+    sizeof(ReadACKCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+burnCmd_t saveDeltaEGmacmd =
+{
+    QString("SaveGmaStatus"),
+    QString("Save the DeltaE Gamma, so can the other instructions execute!"),
+    nullptr,
+    SaveGmaCmd,
+    sizeof(SaveGmaCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
 
 
 }

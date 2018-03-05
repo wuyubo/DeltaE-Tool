@@ -110,3 +110,90 @@ void Data::update_PatRgb()
         init_PatRgbList();
     }
 }
+QString Data::readFile(QString path)
+{
+    QString data;
+    char cBuf[128];
+    qint64 LineLen;
+    QFile file(path);      //---打开文件
+    data.clear();
+    if (file.open(QIODevice :: ReadOnly)) //  以只读的方式打开
+    {
+        do
+        {
+            LineLen = file.readLine(cBuf, sizeof(cBuf)); //---读取文本文件的一行
+            if (-1 != LineLen)                          //---读取成功，将返回读取的字节，读取失败，将返回-1
+            {
+                data.append(QString(QLatin1String(cBuf)));
+            }
+        }while(-1 != LineLen);
+    }
+    file.close();
+    return data;
+}
+
+bool Data::saveFile(QString path, QString data, bool isCover)
+{
+    QFile file(path);
+    isCover = isCover;//not uses
+    if (file.open(QIODevice::WriteOnly)) //打开方式：可写、二进制方式
+    {
+        //按二进制写入时，须进行类型转换，这也是QFile使用上比较麻烦的地方
+        file.write(data.toStdString().c_str()); //参数为char*，须转换
+        file.close();
+        return true;
+    }
+    return false;
+}
+bool Data::saveCompGma(QString path, BYTE *pCompressGma, int size)
+{
+    //QString data;
+    int i;
+    if(size > _MAX_COMP_GMA_COUT)
+    {
+        return false;
+    }
+    for(i = 0; i < size; i++)
+    {
+        m_CompressGma[i] = pCompressGma[i];
+    }
+
+    return true;//saveFile(path, data);
+}
+
+bool Data::saveColorMatrix(QString path, BYTE *psRgbCM, int size)
+{
+    //QString data;
+    int i;
+    if(size > _MAX_COLOR_MATRIX_COUT)
+    {
+        return false;
+    }
+    for(i = 0; i < size; i++)
+    {
+        m_ColorMatrix[i] = psRgbCM[i];
+    }
+    return true;//saveFile(path, data);
+}
+
+bool Data::readCompGma(QString path, BYTE *pCompressGma, int size)
+{
+    //QString data = readFile(path);
+    return false;
+}
+
+bool Data::readColorMatrix(QString path, BYTE *sRgbCM, int size)
+{
+    //QString data = readFile(path);
+    return false;
+}
+
+BYTE *Data::getCompGma()
+{
+    return m_CompressGma;
+}
+
+BYTE *Data::getColorMatrix()
+{
+    return m_ColorMatrix;
+}

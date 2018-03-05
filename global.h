@@ -66,7 +66,8 @@ typedef enum FUNCSTATUS
 //**********************************
 #define _MAX_PATTERN_COUT   100
 #define DEF_COLOR  0
-
+#define _MAX_COMP_GMA_COUT 3*64
+#define _MAX_COLOR_MATRIX_COUT 18
 //**********************************
 //RGB data end
 //**********************************

@@ -6,7 +6,7 @@ using std::endl;
 
 namespace ddc {
 
-#define		PERPACK_LEN			16
+#define		PERPACK_LEN			40
 
 void Transfer_T::setburnCmd(burnCmd_t *burnmsg,quint8 source)
 {
@@ -58,11 +58,11 @@ bool Transfer_T::transfermultipackage(void)
             if(m_burnmsg->assemblefunc)
             {
                 tmpdata = m_burnmsg->assemblefunc(m_burnmsg->burndata,m_burnmsg->datalen,m_databody+i*length,Rlength);
-                //qDebug("assembly data size:%d",tmpdata.size);
+                qDebug("assembly data size:%d",tmpdata.size);
                 m_protocol.write(tmpdata.data,tmpdata.size,m_source);
                 if(tmpdata.data!=m_burnmsg->burndata)
                 {
-                    //qDebug("delete the burndata");
+                    qDebug("delete the burndata");
                     delete[] tmpdata.data;//for the object array,recall the destructor one by one.
                 }
             }
