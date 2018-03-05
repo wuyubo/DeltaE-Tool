@@ -48,6 +48,16 @@ typedef struct
     int green;
     int blue;
 }cRGB_t;
+
+typedef enum FUNCSTATUS
+{
+    FUNC_NONE,
+    FUNC_CHECK,
+    FUNC_ADJUST,
+    FUNC_RUN,
+    FUNC_END,
+}FUNCSTATUS_t;
+
 //**********************************
 //global data end
 //**********************************

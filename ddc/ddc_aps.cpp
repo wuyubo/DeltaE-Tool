@@ -17,7 +17,7 @@ quint8 enterDebugCmd[]={0xCC, 0x90, 0x01};
 //进入AutoGamma Pattern
 quint8 enterAutoGammaCmd[]={0xCC, 0x30, 0x01};
 //输入RGBW 4X9Pattern，每秒2～3个Pattern
-quint8 writeRGBPaternCmd[]={0x31, 0x00, 0x00, 0x00};
+quint8 writeRGBPaternCmd[]={0xCC, 0x31, 0x00, 0x00, 0x00};
 //退出Pattern 模式，退出调试模式
 quint8 exitAutoGammaCmd[]={0xCC, 0x30, 0X00};
 quint8 exitDebugCmd[]={0xCC, 0x90, 0X00};
@@ -28,7 +28,7 @@ bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
     Q_UNUSED(fdlen);
     Q_UNUSED(data);
     Q_UNUSED(len);
-
+    return true;
     if(*(feedback+7)==0xE0)
         return true;
     else
@@ -57,7 +57,7 @@ int CommonSetpara(QString& text,quint8 *head,quint8& headsize)
     {
         if(x.length()>2)
         {
-            DEBUGMSG()<<"error format.";
+           // DEBUGMSG()<<"error format.";
             return -1;
         }
     }
@@ -69,7 +69,7 @@ int CommonSetpara(QString& text,quint8 *head,quint8& headsize)
     //some defense condition
     bool *ok=0;
     int value = text.toInt(ok,16);
-    DEBUGMSG()<<"para:"<<value;
+    //DEBUGMSG()<<"para:"<<value;
     *(head+5) = (quint8)value;
     return 1;
 }
@@ -83,7 +83,7 @@ int SNsetpara(QString& text,quint8 *head,quint8& headsize)
     {
         if(x.length()>2)
         {
-            DEBUGMSG()<<"error format.";
+           // DEBUGMSG()<<"error format.";
             return -1;
         }
     }
@@ -142,5 +142,82 @@ burnCmd_t enterATcmd =
     COMMON_DELAY,
     COMMON_DELAY,
 };
+
+burnCmd_t enterDeltaEDebugcmd =
+{
+    QString("EnterDeltaEDebugStatus"),
+    QString("Enter the DeltaE Debug Status, so can the other instructions execute!"),
+    nullptr,
+    enterDebugCmd,
+    sizeof(enterDebugCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+burnCmd_t enterDeltaEAutoGammacmd =
+{
+    QString("EnterAutoGammaStatus"),
+    QString("Enter the DeltaE Auto Gamma Status, so can the other instructions execute!"),
+    nullptr,
+    enterAutoGammaCmd,
+    sizeof(enterAutoGammaCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+burnCmd_t writeDeltaERGBPaternCmd =
+{
+    QString("RGBPaternStatus"),
+    QString("write DeltaE RGB Patern, so can the other instructions execute!"),
+    nullptr,
+    writeRGBPaternCmd,
+    sizeof(writeRGBPaternCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+burnCmd_t exitDeltaEDebugcmd =
+{
+    QString("exitDeltaEDebugStatus"),
+    QString("exit the DeltaE Debug Status, so can the other instructions execute!"),
+    nullptr,
+    exitDebugCmd,
+    sizeof(exitDebugCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+burnCmd_t exitDeltaEAutoGammacmd =
+{
+    QString("exitAutoGammaStatus"),
+    QString("exit the DeltaE Auto Gamma Status, so can the other instructions execute!"),
+    nullptr,
+    exitAutoGammaCmd,
+    sizeof(exitAutoGammaCmd),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    3,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
+
+
 
 }

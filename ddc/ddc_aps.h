@@ -10,6 +10,9 @@ namespace ddc {
 using cbverify = bool(*)(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len);
 using cbassemble = burndata_t (*)(quint8 *head,quint8 headsize,quint8 *body,quint8 bodysize);
 using setpara = int (*)(QString& text,quint8 *head,quint8& headsize);
+#define PAT_R 2
+#define PAT_G 3
+#define PAT_B 4
 
 typedef struct burncmd{
     //ui relate
@@ -31,7 +34,12 @@ typedef struct burncmd{
     quint32 delay;
     quint32 lastpackdelay;
 }burnCmd_t;
-
+extern burnCmd_t enterATcmd;
+extern burnCmd_t enterDeltaEDebugcmd;
+extern burnCmd_t enterDeltaEAutoGammacmd;
+extern burnCmd_t writeDeltaERGBPaternCmd;
+extern burnCmd_t exitDeltaEDebugcmd;
+extern burnCmd_t exitDeltaEAutoGammacmd;
 }
 
 #endif // DDC_APS_H

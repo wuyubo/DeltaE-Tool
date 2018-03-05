@@ -27,7 +27,9 @@ SOURCES += main.cpp\
     ddc/burnsetting.cpp \
     colorwindow.cpp \
     deltaE/DeltaE.c \
-    data/data.cpp
+    data/data.cpp \
+    ddc/transfer.cpp \
+    ddc/ddc_protocol.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
@@ -43,7 +45,9 @@ HEADERS  += DeltaEMainwindow.h \
     ddc/burnsetting.h \
     colorwindow.h \
     deltaE/DeltaE.h \
-    data/data.h
+    data/data.h \
+    ddc/transfer.h \
+    ddc/ddc_protocol.h
 
 FORMS    += DeltaEMainwindow.ui \
     colorwindow.ui
