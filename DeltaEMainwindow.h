@@ -26,12 +26,14 @@ private slots:
     void actUpdateMsg();
 private:
     void showTipsMsg();
+    void pBtnEnable(bool bEnable);
 
 private:
     Ui::DeltaEMainWindow *ui;
     ColorWindow *colorUi;
     DeltaEInterface *pDteInterface;
     QString strTips;
+    bool m_bisConnect;
 };
 
 #endif // DELTAEMAINWINDOW_H

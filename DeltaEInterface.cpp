@@ -1,81 +1,17 @@
 #include "DeltaEInterface.h"
 #include <QTime>
-cRGB_t g_PatternList[_MAX_PATTERN_COUT] = {
-    {32, 32, 32},
-    {64, 64, 64},
-    {96, 96, 96},
-    {128, 128, 128},
-    {160, 160, 160},
-    {192, 192, 192},
-    {224, 224, 224},
-    {255, 255, 255},
-    {128, 0, 0},
-    {192, 64, 64},
-    {255, 0, 0},
-    {255, 128, 128},
-    {0, 128, 0},
-    {64, 192, 64},
-    {0, 255, 0},
-    {0, 255, 0},
-    {0, 0, 128},
-    {64, 64, 192},
-    {0, 0, 255},
-    {128, 128, 255},
-    {128, 128, 0},
-    {192, 192, 64},
-    {255, 255, 0},
-    {255, 255, 128},
-    {128, 0, 128},
-    {192, 64, 192},
-    {255, 0, 255},
-    {255, 128, 255},
-    {0, 128, 128},
-    {64, 192, 192},
-    {0, 255, 255},
-    {128, 255, 255},
-};
-XYZCOLOR testXYZ[32] =
+cRGB_t pat_RGBW[] =
 {
-    {1.58,1.65,1.94},
-    {7.75,8.15,9.33},
-    {17.43,18.51,20.7},
-    {31.15,32.96,37.17},
-    {49.79,52.54,59.77},
-    {73.71,77.55,88.85},
-    {102.92,108.38,122.15},
-    {135.4,143.96,156.18},
-    {13.4,6.56,0.58},
-    {36.6,23.41,10.99},
-    {60.02,31.41,2.42},
-    {77.49,56.92,39.53},
-    {11.74,23.61,3.51},
-    {32.47,58.01,17.83},
-    {51.81,104.66,16.62},
-    {70.67,113.37,50.15},
-    {6.07,2.06,32.11},
-    {21,13.31,79.45},
-    {26.49,10.1,139.36},
-    {51.36,40.91,143.63},
-    {24.84,30.43,4.03},
-    {60.58,72.57,19.18},
-    {109.74,134.22,19.39},
-    {115.74,136.49,52.34},
-    {19.6,9.03,33.12},
-    {49.8,28.49,80.91},
-    {86.45,42.09,141.99},
-    {97.45,64.94,145.17},
-    {18.04,26.14,36.55},
-    {45.58,63.04,87.5},
-    {77.84,114.52,154.48},
-    {90.45,120.85,154.89},
+    {255, 0, 0},
+    {0, 255, 0},
+    {0, 0, 255},
+    {255, 255, 255},
 };
-
-const cRGB_t pat_White = {255, 255, 255};
-
 
 DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
 {
     func_status = FUNC_NONE;
+    m_delayTimeMs = DEF_DALEY_MS;
     pCa210 = new Ca210DllCtr(CA210DLL);
     pMstGenGma = new MstGenGmaCtr();
     if(!pCa210 || !pMstGenGma)
@@ -123,8 +59,7 @@ bool DeltaEInterface::dteConnect()
 int DeltaEInterface::dteRun()
 {
     setStatus(FUNC_RUN);
-    //return sRGB_DeltaERun();
-    return sRGB_DeltaEAdjust();
+    return sRGB_DeltaERun();
 }
 
 int DeltaEInterface::dteCheck()
@@ -136,13 +71,7 @@ int DeltaEInterface::dteCheck()
 bool DeltaEInterface::dteAdjust()
 {
     setStatus(FUNC_ADJUST);
-    QString temp;
-    LPCA210DATASTRUCT ca210 = pCa210->caMeasure();
-    XYZCOLOR xyz = pCa210->caGetAverageMeasureXYZ(1);
-    temp.sprintf("X:%d-%d, Y:%d-%d, Z:%d-%d\n",
-                 ca210->fX, xyz.fX, ca210->fY,xyz.fY, ca210->fZ, xyz.fZ);
-    showMsg(temp);
-    return pCa210->caSetChannel(0);
+    return sRGB_DeltaEAdjust();
 }
 bool DeltaEInterface::connectI2C()
 {
@@ -256,12 +185,15 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
 
 bool DeltaEInterface::sRGB_DeltaEVerifyStep1()
 {
-    XYZCOLOR color={0,0,0};
+    //XYZCOLOR color={0,0,0};
+    LPCA210DATASTRUCT pca210;
     QString temp;
-    sendPattern(pat_White);//SEND 100% White pattern
-    delayMs(300);//延时300ms
-    color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
-    m_d100W_Raw_Y = color.fX;
+    sendPattern(pat_RGBW[3]);//SEND 100% White pattern
+    delayMs(m_delayTimeMs);//延时ms
+   // color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
+    pca210 = pCa210->caMeasure();
+    m_d100W_Raw_Y = pca210->fY;
+
     temp.sprintf("100 White Y : %lf \n", m_d100W_Raw_Y);
     showMsg(temp);
     return true;
@@ -269,21 +201,40 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep1()
 
 bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
 {
-    XYZCOLOR color={0,0,0};
+    //XYZCOLOR color={0,0,0};
+    LPCA210DATASTRUCT pca210;
     QString temp;
     int pattern_index=0;
     float result;
+    int i = 1;
     for(pattern_index = 0;pattern_index < m_pdata->pat_RgbCount; pattern_index++)
     {
         sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
-        delayMs(300);//延时300ms
-        color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
+        delayMs(m_delayTimeMs);//延时ms
+       // color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
        // color = testXYZ[pattern_index];
-        result = GetDeltaE_OnePatCIE94(pattern_index, color.fX, color.fY, color.fZ, m_d100W_Raw_Y);
+        pca210 = pCa210->caMeasure();
+        result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
         sRGBResult += result;
-        temp.sprintf("%d -(%lf, %lf, %lf) : %lf\n", pattern_index+1, color.fX, color.fY, color.fZ, result);
+        if(pattern_index == 0)
+        {
+            m_pdata->setPanelNativeData(0, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            m_pdata->setPanelNativeData(1, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            m_pdata->setPanelNativeData(2, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            m_pdata->setPanelNativeData(3, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+        }else
+        {
+            m_pdata->setPanelNativeData((int)((pattern_index-1)/8), i++, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            if(i == 9)
+            {
+                i = 1;
+            }
+        }
+
+        temp.sprintf("%d -(%lf, %lf, %lf) : %lf\n", pattern_index+1, pca210->fX, pca210->fY, pca210->fZ, result);
         showMsg(temp);
     }
+    m_pdata->savePanelNativeData();
     return true;
 }
 
@@ -306,11 +257,11 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
 
 bool DeltaEInterface::sRGB_DeltaEAdjust()
 {
-    sRGB_DeltaEAdjustStep0();// generate gamma
-    return sRGB_DeltaEAdjustStep1();//send gamma to monitor
-    //return sRGB_DeltaEAdjustStep2();
+    //sRGB_DeltaEAdjustStep0();// generate gamma
+    sRGB_DeltaEAdjustStep1();//send gamma to monitor
+    return sRGB_DeltaEAdjustStep2();
 }
-bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
+bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
 {
     double GmaIn[4*5*9];
     BYTE outCompressBuf[64*3];
@@ -319,19 +270,18 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
     const int gamutType = 1;
     pMstGenGma->mmstSetMeasPtnNum(9);
     pMstGenGma->mmstSetCompressType(0);// 0 : 64 bytes ,1 : 76 bytes
-    pMstGenGma->mGetPanelNativeData(GmaIn);
+    m_pdata->getPanelNativeData(GmaIn);
     //Generate gamma curve and color matrix
     pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
-    m_pdata->saveCompGma("",outCompressBuf, 64*3);
-    m_pdata->saveColorMatrix("",sRgbCM, 18);\
+    m_pdata->saveCompGma(outCompressBuf, 64*3);
+    m_pdata->saveColorMatrix(sRgbCM, 18);
     return true;
 }
-bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
+bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
 {
     BYTE *pCompGama;
     BYTE *psRgbCm;
     int i = 0;
-   // QString temp;
     pCompGama = m_pdata->getCompGma();
     psRgbCm = m_pdata->getColorMatrix();
     //先发送MS_WR_BLOCK ，进入调试模式
@@ -369,9 +319,9 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     return cmdSend(&exitDeltaEDebugcmd);
 }
 
-bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
+bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
 {
-    return false;
+    return true;
 }
 bool DeltaEInterface::cmdSend(QString CmdStr)
 {
@@ -481,7 +431,10 @@ bool DeltaEInterface::sRGB_DeltaERun()
     sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
     sRGB_DeltaERunstep1();
     sRGB_DeltaERunstep2();
-    sRGB_DeltaERunstep3();
+    if(sRGB_DeltaERunstep3())
+    {
+       return true;
+    }
     return sRGB_DeltaERunstep4();
 }
 
@@ -517,3 +470,4 @@ bool DeltaEInterface::sRGB_DeltaERunstep4()
 {
     return sRGB_DeltaEAdjust();
 }
+

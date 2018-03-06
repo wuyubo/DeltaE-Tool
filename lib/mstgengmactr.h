@@ -32,7 +32,6 @@ public:
     void msetGammaEntries(int gmaEntries); //set nmber of gamma entries
     int  mgetGammaEntries();
     void msetPanelNativeData(double * panelNativeData, int formatType);
-    void mGetPanelNativeData(double * panelNativeData);
     void msetGamutType(int gamutType);
     void msetUserGamutVertice(int RGBW, double sx, double sy);
     void mgetGamutvertice(int gamutType, int RGBW, double *sx, double *sy);

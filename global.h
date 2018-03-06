@@ -16,6 +16,8 @@
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
 #define SRGB_PATTERN_PATN "sRGB_pattern.cvt"
+#define GAMMA_TABLE_PATH  "./GammaTable.cvt"
+#define COLOR_MATRIX_PATH "./ColorMatrix.cvt"
 
 #define EN_DEBUG 1
 #if EN_DEBUG
@@ -68,6 +70,7 @@ typedef enum FUNCSTATUS
 #define DEF_COLOR  0
 #define _MAX_COMP_GMA_COUT 3*64
 #define _MAX_COLOR_MATRIX_COUT 18
+#define _MAX_NATIVE_COUT 4*5*9
 //**********************************
 //RGB data end
 //**********************************
@@ -75,6 +78,7 @@ typedef enum FUNCSTATUS
 //CA210 data start
 //**********************************
 #define CA210_CHANNEL  0
+#define DEF_DALEY_MS   10
 //**********************************
 //CA210 data end
 //**********************************

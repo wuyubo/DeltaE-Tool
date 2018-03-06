@@ -7,6 +7,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     ui(new Ui::DeltaEMainWindow)
 {
     ui->setupUi(this);
+    m_bisConnect = false;
     colorUi = new ColorWindow(this);
     connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
@@ -37,15 +38,20 @@ DeltaEMainWindow::~DeltaEMainWindow()
 
 void DeltaEMainWindow::actConnect()
 {
-    if(pDteInterface->dteConnect())
+    pBtnEnable(false);
+    if(m_bisConnect == false)
     {
-        strTips.append("connect success!\n");
-    }
-    else
-    {
-        strTips.append("connect failed!\n");
+        if(pDteInterface->dteConnect())
+        {
+            strTips.append("connect success!\n");
+        }
+        else
+        {
+            strTips.append("connect failed!\n");
+        }
     }
     showTipsMsg();
+    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::actRun()
@@ -53,7 +59,7 @@ void DeltaEMainWindow::actRun()
     bool bResult = false;
     strTips.append("Running......\n");
     showTipsMsg();
-    ui->pBtn_Run->setEnabled(false);
+    pBtnEnable(false);
     bResult = pDteInterface->dteRun();
     if(bResult)
     {
@@ -63,7 +69,7 @@ void DeltaEMainWindow::actRun()
        strTips.append("result FAIL!!!\n");
     }
     showTipsMsg();
-    ui->pBtn_Run->setEnabled(true);
+    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::actCheck()
@@ -71,7 +77,7 @@ void DeltaEMainWindow::actCheck()
     bool bResult = false;
     strTips.append("Check......\n");
     showTipsMsg();
-    ui->pBtn_Check->setEnabled(false);
+    pBtnEnable(false);
     bResult = pDteInterface->dteCheck();
     if(bResult)
     {
@@ -81,11 +87,12 @@ void DeltaEMainWindow::actCheck()
        strTips.append("result FAIL!!!\n");
     }
     showTipsMsg();
-    ui->pBtn_Check->setEnabled(true);
+    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::actAdjust()
 {
+    pBtnEnable(false);
     if(pDteInterface->dteAdjust())
     {
         strTips.append("adjust success!!!\n");
@@ -95,7 +102,7 @@ void DeltaEMainWindow::actAdjust()
         strTips.append("adjust fail!!!\n");
     }
     showTipsMsg();
-
+    pBtnEnable(true);
 }
 void DeltaEMainWindow::actOpenColor()
 {
@@ -129,4 +136,13 @@ void DeltaEMainWindow::showTipsMsg()
     QTextCursor cursor = ui->txt_Massage->textCursor();
     cursor.movePosition(QTextCursor::End);
     ui->txt_Massage->setTextCursor(cursor);
+}
+
+void DeltaEMainWindow::pBtnEnable(bool bEnable)
+{
+    ui->pBtn_Run->setEnabled(bEnable);
+    ui->pBtn_Adjust->setEnabled(bEnable);
+    ui->pBtn_Check->setEnabled(bEnable);
+    ui->pBtn_Connect->setEnabled(bEnable);
+    ui->pBtn_Color->setEnabled(bEnable);
 }

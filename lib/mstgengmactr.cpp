@@ -290,15 +290,6 @@ void MstGenGmaCtr::msetPanelNativeData(double * panelNativeData, int formatType)
     setPanelNativeData(panelNativeData, formatType);
 }
 
-void MstGenGmaCtr::mGetPanelNativeData(double * panelNativeData)
-{
-    int i;
-    for(i = 0; i < 4*5*9; i++)
-    {
-        panelNativeData[i] = default_Native_RGB_XYZxy[i];
-    }
-}
-
 void MstGenGmaCtr::msetGamutType(int gamutType)
 {
     setGamutType(gamutType);

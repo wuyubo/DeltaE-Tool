@@ -65,6 +65,7 @@ private:
     Ca210DllCtr *pCa210;
     MstGenGmaCtr *pMstGenGma;
     FUNCSTATUS_t func_status;
+    int m_delayTimeMs;
     //I2C
     Isp_I2C *i2cdevice;
     BurnSetting_T *m_pBurnsettings;
