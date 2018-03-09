@@ -350,17 +350,17 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
         POSTGMA_SETSIZE(32);
         POSTGMA_SETOFFSET(0);
         cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64, 32);
-        //delayMs(40);
-        cmdSend(&readDeltaEACKcmd);
-        cmdSend(&readDeltaEACKcmd);
+        delayMs(40);
+        //cmdSend(&readDeltaEACKcmd);
+        //cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
         //发送 GAMMA MODE 0 ，Channel i，后32字节s
         POSTGMA_SETSIZE(32);
         POSTGMA_SETOFFSETL(32);
         cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64+32, 32);
-        //delayMs(40);
-        cmdSend(&readDeltaEACKcmd);
-        cmdSend(&readDeltaEACKcmd);
+        delayMs(40);
+        //cmdSend(&readDeltaEACKcmd);
+        //cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
     }
     //保存SRGB Gamma

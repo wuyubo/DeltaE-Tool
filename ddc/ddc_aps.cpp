@@ -27,16 +27,45 @@ quint8 ReadACKCmd[]={0xCC, 0x8E};
 quint8 SaveGmaCmd[]={0xCC, 0x33, 0x00, 0x00, 0x16};
 
 //verify function declarations
+
+quint8 getFeedbackchecksum(quint8 *data,quint8 datalen)
+{
+    if (data == NULL) return false;
+    quint8 checksum=0;
+    for (int i = 0; i < datalen; i++)
+    {
+        checksum^=*data++;
+    }
+    checksum ^= checksum;
+    return checksum;
+}
 bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
 {
     Q_UNUSED(fdlen);
     Q_UNUSED(data);
     Q_UNUSED(len);
-    return true;
-    if(*(feedback+7)==0xE0)
-        return true;
-    else
+    if(fdlen < 3)
+    {
         return false;
+    }
+    if(feedback[0] == 0x6E)
+    {
+        if(feedback[1] == 0x80)
+        {
+            if( feedback[2] == 0xBE )
+            {
+                return true;
+            }
+        }else if(feedback[1] == 0x81)
+        {
+            if(getFeedbackchecksum(data, len) == feedback[1])
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 burndata_t CommonAssemble_Alloc(quint8 *head,quint8 headsize,quint8 *body,quint8 bodysize)
@@ -127,6 +156,7 @@ int SetMultiparas(QString& text,quint8 *head,quint8 &headsize)
     headsize = bytes.size() + 5;
     return 1;
 }
+
 
 /*******************************************************
  ** No Parameter Instructions.
