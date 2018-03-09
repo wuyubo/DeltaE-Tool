@@ -38,6 +38,7 @@ public:
     void msetGammaTrackType(int gmaTrackType);
     void msetGammaPower(double gmaPwr);
     void msetColorTempTrackType(int ctTrackType);
+    void msetColorTemperatureXY(double sx, double sy);
     void msetColorTemperature(int colorTemp);
     void msetDarkModifySettings(int darkModifyMode, int darkLevel);
     void msetBrightModifySettings(int brightModifyMode, int rightLevel);

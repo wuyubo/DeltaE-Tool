@@ -14,6 +14,7 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     m_delayTimeMs = DEF_DALEY_MS;
     pCa210 = new Ca210DllCtr(CA210DLL);
     pMstGenGma = new MstGenGmaCtr();
+    m_isConnect = false;
     if(!pCa210 || !pMstGenGma)
     {
         exit(-1);
@@ -53,23 +54,56 @@ DeltaEInterface::~DeltaEInterface()
 
 bool DeltaEInterface::dteConnect()
 {
-    return (connectI2C()&& pCa210->caConnect(CA210_CHANNEL));
+    if(connectI2C()&& pCa210->caConnect(CA210_CHANNEL))
+    {
+        m_isConnect = true;
+    }
+    return m_isConnect;
+}
+void DeltaEInterface::dteDisConnect()
+{
+    if(!m_isConnect)
+    {
+        showMsg("pls connect...\n");
+        return;
+    }
+    if(i2cdevice->gethandle())
+    {
+        i2cdevice->closeDevice(i2cdevice->gethandle());
+    }
+    pCa210->caDisConnect();
+    m_isConnect = false;
 }
 
 int DeltaEInterface::dteRun()
 {
+    if(!m_isConnect)
+    {
+        showMsg("pls connect...\n");
+        return m_isConnect;
+    }
     setStatus(FUNC_RUN);
     return sRGB_DeltaERun();
 }
 
 int DeltaEInterface::dteCheck()
 {
+    if(!m_isConnect)
+    {
+        showMsg("pls connect...\n");
+        return m_isConnect;
+    }
     setStatus(FUNC_CHECK);
     return sRGB_DeltaEVerify();;
 }
 
 bool DeltaEInterface::dteAdjust()
 {
+    if(!m_isConnect)
+    {
+        showMsg("pls connect...\n");
+        return m_isConnect;
+    }
     setStatus(FUNC_ADJUST);
     return sRGB_DeltaEAdjust();
 }
@@ -168,16 +202,23 @@ bool DeltaEInterface::sRGB_DeltaEVerify()
        showMsg("please connect Ca210...\n");
        return false;
     }
-    sRGB_DeltaEVerifyStep0();
-    sRGB_DeltaEVerifyStep1();
-    sRGB_DeltaEVerifyStep2();
-    return sRGB_DeltaEVerifyStep3();
+    sRGB_DeltaEVerifyStep0(); //0. load pattern
+    sRGB_DeltaEVerifyStep1(); //1. get 100% wihte Y
+    sRGB_DeltaEVerifyStep2(); //2. measure gamma data
+    return sRGB_DeltaEVerifyStep3(); //3. check the result
 }
 bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
 {
     QString temp;
     sRGBResult = 0;
-    m_pdata->update_PatRgb(); //load pattern file
+    if(isStatus(FUNC_CHECK))
+    {
+        m_delayTimeMs = CHECK_DALEY_MS;
+    }else
+    {
+        m_delayTimeMs = ADJUST_DALEY_MS;
+    }
+    m_pdata->update_PatRgb(isStatus(FUNC_CHECK), PATTERN_LEVEL); //load pattern file
     temp.sprintf("Pattern Count: %d\n", m_pdata->pat_RgbCount);
     showMsg(temp);
     return true;
@@ -206,35 +247,26 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
     QString temp;
     int pattern_index=0;
     float result;
-    int i = 1;
-    for(pattern_index = 0;pattern_index < m_pdata->pat_RgbCount; pattern_index++)
+
+    for(pattern_index = 0;pattern_index < m_pdata->getPatternCount(); pattern_index++)
     {
         sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
         delayMs(m_delayTimeMs);//延时ms
        // color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
        // color = testXYZ[pattern_index];
         pca210 = pCa210->caMeasure();
-        result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
-        sRGBResult += result;
-        if(pattern_index == 0)
+        if(isStatus(FUNC_CHECK))
         {
-            m_pdata->setPanelNativeData(0, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-            m_pdata->setPanelNativeData(1, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-            m_pdata->setPanelNativeData(2, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-            m_pdata->setPanelNativeData(3, 0, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-        }else
-        {
-            m_pdata->setPanelNativeData((int)((pattern_index-1)/8), i++, pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-            if(i == 9)
-            {
-                i = 1;
-            }
+            result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
+            sRGBResult += result;
+            temp.sprintf("%d : %lf\n", pattern_index+1,result);
         }
-
-        temp.sprintf("%d -(%lf, %lf, %lf) : %lf\n", pattern_index+1, pca210->fX, pca210->fY, pca210->fZ, result);
+        m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level*5), pattern_index%m_pdata->pat_Level,pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+        temp.sprintf("%d : %lf %lf %lf \n", pattern_index+1,pca210->fX, pca210->fY, pca210->fZ);
         showMsg(temp);
     }
     m_pdata->savePanelNativeData();
+    m_pdata->saveDeltaEData();
     return true;
 }
 
@@ -257,22 +289,46 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
 
 bool DeltaEInterface::sRGB_DeltaEAdjust()
 {
-    //sRGB_DeltaEAdjustStep0();// generate gamma
-    sRGB_DeltaEAdjustStep1();//send gamma to monitor
-    return sRGB_DeltaEAdjustStep2();
+    sRGB_DeltaEAdjustStep0();
+    sRGB_DeltaEAdjustStep1();// generate gamma
+    return sRGB_DeltaEAdjustStep2();//send gamma to monitor
 }
 bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
 {
-    double GmaIn[4*5*9];
+    double GmaIn[4*5*PATTERN_LEVEL];
     BYTE outCompressBuf[64*3];
     BYTE sRgbCM[19];
     const int gammaEntris = 256;
+    //nativeDataFmtType=0:9_ptn,1:17_ptn,2:33_ptn,3:65_ptn,4:129_ptn,5:256_ptn,
+    //6 : RGB_1ptn_W_9ptn
+    const int nativeDataFmtType = m_pdata->pat_Level;
+    //gamutType = 0: disable, 1 : sRGB(gma 2.2), 2 : adobeRGB(gma 2.2), 3 : BT709(gma 2.4),
+    //4 : BT2020(gma 2.4), 5 : DCI_P3(gma 2.6), 6 : User_define(gma 2.2)
     const int gamutType = 1;
-    pMstGenGma->mmstSetMeasPtnNum(9);
-    pMstGenGma->mmstSetCompressType(0);// 0 : 64 bytes ,1 : 76 bytes
+    //Set compression type to none data loss compression method.
+    const int compGmaType = 0;// 0 : 64 bytes ,1 : 76 bytes
+
     m_pdata->getPanelNativeData(GmaIn);
-    //Generate gamma curve and color matrix
+    //pMstGenGma->msetGammaEntries(gammaEntris);
+    //pMstGenGma->msetPanelNativeData(GmaIn, 2);
+    pMstGenGma->msetGamutType(gamutType);
+    pMstGenGma->msetDarkModifySettings(1, 16);
+    pMstGenGma->mmstSetMeasPtnNum(nativeDataFmtType);
+    pMstGenGma->mmstSetCompressType(compGmaType);
+
+    //pMstGenGma->msetBrightModifySettings(0, 255);
+    //pMstGenGma->msetGammaTrackType(1);
+    //pMstGenGma->msetGammaPower(2.2);
+    //pMstGenGma->msetColorTempTrackType(1);
+    //pMstGenGma->msetColorTemperatureXY(0.313,0.329);
+    pMstGenGma->mmstSetTargetGamut(0, 0.6354, 0.3422);//R
+    pMstGenGma->mmstSetTargetGamut(1, 0.3031, 0.6170);//G
+    pMstGenGma->mmstSetTargetGamut(2, 0.1475, 0.0590);//B
+    pMstGenGma->mmstSetTargetGamut(3, 0.3124, 0.3284);//W
     pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
+
+    //pMstGenGma->mmstGenUserGamutData(GmaIn, outCompressBuf, sRgbCM);
+
     m_pdata->saveCompGma(outCompressBuf, 64*3);
     m_pdata->saveColorMatrix(sRgbCM, 18);
     return true;
@@ -288,19 +344,21 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
     cmdSend(&enterDeltaEDebugcmd);
     for(i = 0; i < 3; i++)
     {
-        //先发送 GAMMA MODE 0 ，Channel i，前40字节
-        POSTGMA_SETMODE(0);
+        //先发送 GAMMA MODE 0 ，Channel i，前32字节
+        POSTGMA_SETMODE(1);
         POSTGMA_SETCHANEL(i);
-        POSTGMA_SETSIZE(40);
+        POSTGMA_SETSIZE(32);
         POSTGMA_SETOFFSET(0);
-        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64, 40);
+        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64, 32);
+        //delayMs(40);
         cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
-        //发送 GAMMA MODE 0 ，Channel i，后24字节s
-        POSTGMA_SETSIZE(24);
-        POSTGMA_SETOFFSET(40);
-        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64+40, 24);
+        //发送 GAMMA MODE 0 ，Channel i，后32字节s
+        POSTGMA_SETSIZE(32);
+        POSTGMA_SETOFFSETL(32);
+        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64+32, 32);
+        //delayMs(40);
         cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
         cmdSend(&readDeltaEACKcmd);
@@ -311,7 +369,10 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
     cmdSend(&exitDeltaEDebugcmd);
     //写ColorMatrix Mode：SRGB 18Byte
     cmdSend(&enterDeltaEDebugcmd);
+    COLORMATRIX_SETMODE(0);
+    COLORMATRIX_SETSIZE(18);
     cmdSend(&writeDeltaEColorMatrixcmd, psRgbCm, 18);
+    //delayMs(40);
     cmdSend(&readDeltaEACKcmd);
     cmdSend(&readDeltaEACKcmd);
     cmdSend(&readDeltaEACKcmd);
@@ -321,11 +382,15 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
 
 bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
 {
+    if(isStatus(FUNC_ADJUST))
+    {
+        m_pdata->loadPanelNativeData();
+    }
     return true;
 }
 bool DeltaEInterface::cmdSend(QString CmdStr)
 {
-    if (NULL==i2cdevice->gethandle())
+    if (!i2cdevice->gethandle())
     {
         showMsg("pleas open device first!!\n");
         return false;
@@ -431,10 +496,7 @@ bool DeltaEInterface::sRGB_DeltaERun()
     sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
     sRGB_DeltaERunstep1();
     sRGB_DeltaERunstep2();
-    if(sRGB_DeltaERunstep3())
-    {
-       return true;
-    }
+    sRGB_DeltaERunstep3();
     return sRGB_DeltaERunstep4();
 }
 
@@ -451,6 +513,10 @@ bool DeltaEInterface::sRGB_DeltaERunstep0()
 
 bool DeltaEInterface::sRGB_DeltaERunstep1()
 {
+    if(!isStatus(FUNC_CHECK))
+    {
+        return true;
+    }
     return sRGB_DeltaEVerifyStep1();
 }
 

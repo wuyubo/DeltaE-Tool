@@ -15,9 +15,13 @@
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
-#define SRGB_PATTERN_PATN "sRGB_pattern.cvt"
-#define GAMMA_TABLE_PATH  "./GammaTable.cvt"
-#define COLOR_MATRIX_PATH "./ColorMatrix.cvt"
+#define SRGB_PATTERN_PATN "sRGB_patternL33.cvt"
+#define SRGB_PATTERN_SUFFIX ".cvt"
+#define GAMMA_TABLE_PATH  "./GammaTable.txt"
+#define COLOR_MATRIX_PATH "./ColorMatrix.txt"
+#define NATIVE_PATH   "./Native_PL"
+#define NATIVE_SUFFIX   ".txt"
+#define DELTAE_DATA_PATH  "./DeltaE_data.txt"
 
 #define EN_DEBUG 1
 #if EN_DEBUG
@@ -66,11 +70,13 @@ typedef enum FUNCSTATUS
 //**********************************
 //RGB data start
 //**********************************
-#define _MAX_PATTERN_COUT   100
+#define _MAX_PATTERN_COUT   200
 #define DEF_COLOR  0
 #define _MAX_COMP_GMA_COUT 3*64
 #define _MAX_COLOR_MATRIX_COUT 18
-#define _MAX_NATIVE_COUT 4*5*9
+#define PATTERN_LEVEL  33
+#define _MAX_NATIVE_COUT (4*5*PATTERN_LEVEL)
+
 //**********************************
 //RGB data end
 //**********************************
@@ -78,7 +84,9 @@ typedef enum FUNCSTATUS
 //CA210 data start
 //**********************************
 #define CA210_CHANNEL  0
-#define DEF_DALEY_MS   10
+#define DEF_DALEY_MS   300
+#define ADJUST_DALEY_MS  50
+#define CHECK_DALEY_MS   300
 //**********************************
 //CA210 data end
 //**********************************

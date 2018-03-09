@@ -44,11 +44,20 @@ void DeltaEMainWindow::actConnect()
         if(pDteInterface->dteConnect())
         {
             strTips.append("connect success!\n");
+            m_bisConnect = true;
+            ui->pBtn_Connect->setText("disConnect");
         }
         else
         {
             strTips.append("connect failed!\n");
         }
+    }
+    else
+    {
+        pDteInterface->dteDisConnect();
+        m_bisConnect = false;
+        ui->pBtn_Connect->setText("Connect");
+        strTips.append("disConnect!\n");
     }
     showTipsMsg();
     pBtnEnable(true);

@@ -244,6 +244,10 @@ float GetDeltaE_OnePatCIE94(int pattern_index, float fX, float fY, float fZ, flo
     sRGBDeltaE[pattern_index].fDelta_E = GetDeltaE_CIE94(sRGBDeltaE[pattern_index].fComp_L,sRGBDeltaE[pattern_index].fComp_C,sRGBDeltaE[pattern_index].fComp_H);
     return sRGBDeltaE[pattern_index].fDelta_E;
 }
+sRGBDeltaStruct *getsRGBDeltaData()
+{
+    return sRGBDeltaE;
+}
 
 #if 0
 double sRGB_DeltaEVerify(void)

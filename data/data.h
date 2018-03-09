@@ -10,7 +10,9 @@ public:
     explicit Data(QObject *parent = 0);
     void init_PatRgbList();
     bool load_PatRgb();
-    void update_PatRgb();
+    void createPattern(BYTE Level);
+    int getPatternCount();
+    void update_PatRgb( bool isCheck, BYTE Level = 9);
     QString readFile(QString path);
     bool saveFile(QString path, QString data, bool isCover = true);
     bool saveCompGma(BYTE *pCompressGma, int size);
@@ -23,6 +25,8 @@ public:
     bool setPanelNativeData(int rgbw, int index, double dX, double dY,
                             double dZ, double d_y, double d_x);
     bool savePanelNativeData();
+    bool loadPanelNativeData();
+    bool saveDeltaEData();
 signals:
 
 public slots:
@@ -32,6 +36,7 @@ public:
     BYTE m_ColorMatrix[_MAX_COLOR_MATRIX_COUT];
     double m_Native_RGBW[_MAX_NATIVE_COUT];
     int pat_RgbCount;
+    int pat_Level;
 };
 
 #endif // DATA_H

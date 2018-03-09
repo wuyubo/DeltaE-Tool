@@ -22,6 +22,7 @@ public:
     explicit DeltaEInterface(QObject *parent = 0);
     ~DeltaEInterface();
     bool dteConnect();
+    void dteDisConnect();
     int dteRun();
     int dteCheck();
     bool dteAdjust();
@@ -66,6 +67,7 @@ private:
     MstGenGmaCtr *pMstGenGma;
     FUNCSTATUS_t func_status;
     int m_delayTimeMs;
+    bool m_isConnect;
     //I2C
     Isp_I2C *i2cdevice;
     BurnSetting_T *m_pBurnsettings;

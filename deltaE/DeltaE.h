@@ -56,6 +56,7 @@ double GetComp_C(int pattern_index,double fDelta_C );
 double GetComp_H(int pattern_index,double fDelta_H );
 double GetDeltaE_CIE94(double fComp_L,double fComp_C,double fComp_H);
 float GetDeltaE_OnePatCIE94(int pattern_index, float fX, float fY, float fZ, float f100W_Raw_Y);
+sRGBDeltaStruct *getsRGBDeltaData();
 #ifdef __cplusplus
 }//extern "C" {
 #endif

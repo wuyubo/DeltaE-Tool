@@ -1,4 +1,5 @@
 #include "data.h"
+#include "deltaE/DeltaE.h"
 #include <QFile>
 const cRGB_t defaultPatternList[32] = {
     {32, 32, 32},
@@ -240,7 +241,13 @@ double default_Native_RGB_XYZxy[4*5*9] = {
 };
 Data::Data(QObject *parent) : QObject(parent)
 {
-    init_PatRgbList();
+   int i;
+   init_PatRgbList();
+   pat_Level = PATTERN_LEVEL;
+   for(i = 0; i < 4*5*pat_Level; i++)
+   {
+       m_Native_RGBW[i] = default_Native_RGB_XYZxy[i];
+   }
 }
 
 void Data::init_PatRgbList()
@@ -251,20 +258,17 @@ void Data::init_PatRgbList()
     {
         pat_RgbList[i] = defaultPatternList[i];
     }
-    for(i = 0; i < 4*5*9; i++)
-    {
-        m_Native_RGBW[i] = default_Native_RGB_XYZxy[i];
-    }
 }
 
 bool Data::load_PatRgb()
 {
-    QString temp;
+    QString temp, path;
     QStringList ListRgb;
     cRGB_t rgb;
     int index = 0;
     char cBuf[128];
     qint64 LineLen;
+    path.sprintf("%s%d%s",SRGB_PATTERN_PATN,PATTERN_LEVEL, SRGB_PATTERN_SUFFIX);
     QFile file(SRGB_PATTERN_PATN);      //---打开文件
     if (file.open(QIODevice :: ReadOnly)) //  以只读的方式打开
     {
@@ -311,13 +315,61 @@ loaderr:
     return false;
 }
 
-void Data::update_PatRgb()
+void Data::update_PatRgb(bool isCheck, BYTE Level)
 {
-    if(load_PatRgb() == false)
+    if(isCheck)
     {
         init_PatRgbList();
+    }else
+    {
+        load_PatRgb();
     }
 }
+void Data::createPattern(BYTE Level)
+{
+    int i, j;
+    cRGB_t rgb = {0,0,0};
+    unsigned short temp = 0;
+    BYTE interval;
+    int offset = 1;
+    Level = Level-1;
+    interval = (BYTE)(0xFF/Level);
+    pat_RgbCount = 4*Level+1;
+    pat_RgbList[0] = rgb;
+    for(j = 0; j < 4; j++)
+    {
+        rgb.red = 0;
+        rgb.green = 0;
+        rgb.blue = 0;
+        for(i = offset; i < Level+offset; i++)
+        {
+            temp += (unsigned short)interval;
+            if(temp > 0xFF || (i-offset) == (Level-1))
+            {
+                temp = 0xFF;
+            }
+            if(j == 0 || j == 3)
+            {
+                rgb.red = (BYTE)temp;
+            }
+            if( j == 1 || j == 3)
+            {
+                rgb.green = (BYTE)temp;
+            }
+            if( j == 2 || j == 3)
+            {
+                rgb.blue = (BYTE)temp;
+            }
+            pat_RgbList[i] = rgb;
+        }
+        offset = i;
+    }
+}
+int Data::getPatternCount()
+{
+    return pat_RgbCount;
+}
+
 QString Data::readFile(QString path)
 {
     QString data;
@@ -470,20 +522,20 @@ bool Data::readColorMatrix(BYTE *sRgbCM, int size)
 
 BYTE *Data::getCompGma()
 {
-    //readCompGma(m_CompressGma, 3*64);
+    readCompGma(m_CompressGma, 3*64);
     return m_CompressGma;
 }
 
 BYTE *Data::getColorMatrix()
 {
-    //readColorMatrix(m_ColorMatrix, 18);
+    readColorMatrix(m_ColorMatrix, 18);
     return m_ColorMatrix;
 }
 
 void Data::getPanelNativeData(double * panelNativeData)
 {
     int i;
-    for(i = 0; i < 4*5*9; i++)
+    for(i = 0; i < 4*5*PATTERN_LEVEL; i++)
     {
         panelNativeData[i] = m_Native_RGBW[i];
     }
@@ -492,20 +544,20 @@ bool Data::setPanelNativeData(int rgbw, int index, double dX, double dY,
                         double dZ, double d_y, double d_x)
 {
     int i;
-    i = rgbw*5*9;
+    i = rgbw*5*pat_Level;
     i += index;
     if(i >= _MAX_NATIVE_COUT)
     {
         return false;
     }
     m_Native_RGBW[i] = dX;
-    i += 9;
+    i += pat_Level;
     m_Native_RGBW[i] = dY;
-    i += 9;
+    i += pat_Level;
     m_Native_RGBW[i] = dZ;
-    i += 9;
+    i += pat_Level;
     m_Native_RGBW[i] = d_x;
-    i += 9;
+    i += pat_Level;
     m_Native_RGBW[i] = d_y;
     return true;
 }
@@ -513,16 +565,17 @@ bool Data::savePanelNativeData()
 {
     QString data, temp, path;
     int i, rgbw = 0;
-    path = "./Natvie_PL9.cvt";
-    data.append("LEVEL9\n");
-    for(i = 0 ; i<4*5*9; i++)
+    path.sprintf("%s%d%s", NATIVE_PATH, pat_Level, NATIVE_SUFFIX);
+    temp.sprintf("LEVEL%d\n",pat_Level);
+    data.append(temp);
+    for(i = 0 ; i<4*5*pat_Level; i++)
     {
        temp.sprintf("%lf\n", m_Native_RGBW[i]);
-       rgbw = i/(5*9);
-       if(rgbw == 0 && i%9 == 0)
+       rgbw = i/(5*pat_Level);
+       if(rgbw == 0 && i%pat_Level == 0)
        {
            data.append("\nR");
-           switch((i-rgbw*(5*9))/9)
+           switch((i-rgbw*(5*pat_Level))/pat_Level)
            {
                 case 0:
                     data.append("X\n");
@@ -543,10 +596,10 @@ bool Data::savePanelNativeData()
                 break;
            }
        }
-       else if(rgbw == 1 && i%9 == 0)
+       else if(rgbw == 1 && i%pat_Level == 0)
        {
             data.append("\nG");
-            switch((i-rgbw*(5*9))/9)
+            switch((i-rgbw*(5*pat_Level))/pat_Level)
             {
                  case 0:
                      data.append("X\n");
@@ -567,10 +620,10 @@ bool Data::savePanelNativeData()
                  break;
             }
        }
-       else if(rgbw == 2 && i%9 == 0)
+       else if(rgbw == 2 && i%pat_Level == 0)
        {
             data.append("\nB");
-            switch((i-rgbw*(5*9))/9)
+            switch((i-rgbw*(5*pat_Level))/pat_Level)
             {
                  case 0:
                      data.append("X\n");
@@ -591,10 +644,10 @@ bool Data::savePanelNativeData()
                  break;
             }
        }
-       else if(rgbw == 3 && i%9 == 0)
+       else if(rgbw == 3 && i%pat_Level == 0)
        {
             data.append("\nW");
-            switch((i-rgbw*(5*9))/9)
+            switch((i-rgbw*(5*pat_Level))/pat_Level)
             {
                  case 0:
                      data.append("X\n");
@@ -617,5 +670,109 @@ bool Data::savePanelNativeData()
        }
        data.append(temp);
     }
+    return saveFile(path, data);
+}
+bool Data::loadPanelNativeData()
+{
+    QString data, temp, path;
+    int i;
+    QStringList dataList;
+    temp.sprintf("LEVEL%d\n",pat_Level);
+    path.sprintf("%s%d%s", NATIVE_PATH, pat_Level, NATIVE_SUFFIX);
+    data = readFile(path);
+    data.replace(QString(" "), QString(""));
+    data.replace(temp, QString(""));
+    data.replace(QString("RX"), QString(""));
+    data.replace(QString("RY"), QString(""));
+    data.replace(QString("RZ"), QString(""));
+    data.replace(QString("R_x"), QString(""));
+    data.replace(QString("R_y"), QString(""));
+    data.replace(QString("GX"), QString(""));
+    data.replace(QString("GY"), QString(""));
+    data.replace(QString("GZ"), QString(""));
+    data.replace(QString("G_x"), QString(""));
+    data.replace(QString("G_y"), QString(""));
+    data.replace(QString("BX"), QString(""));
+    data.replace(QString("BY"), QString(""));
+    data.replace(QString("BZ"), QString(""));
+    data.replace(QString("B_x"), QString(""));
+    data.replace(QString("B_y"), QString(""));
+    data.replace(QString("WX"), QString(""));
+    data.replace(QString("WY"), QString(""));
+    data.replace(QString("WZ"), QString(""));
+    data.replace(QString("W_x"), QString(""));
+    data.replace(QString("W_y"), QString(""));
+    dataList = data.split("\n", QString::SkipEmptyParts);
+    if(dataList.length() >  _MAX_NATIVE_COUT)
+    {
+        return false;
+    }
+    for(i = 0; i < dataList.length(); i++)
+    {
+        m_Native_RGBW[i] = dataList[i].toDouble();
+    }
+    return true;
+}
+
+bool Data::saveDeltaEData()
+{
+    QString data, temp, path;
+    int i;
+    double Delta_E94 = 0.000000001, max_DeltaE94 = 0.000000001;
+    sRGBDeltaStruct *deltaE_data = getsRGBDeltaData();
+    path = DELTAE_DATA_PATH;
+    data.append("NUM.   DX   DY   DZ,  TX   TY   TZ,  f(X/Xn)  f(Y/Yn)  f(Z/Zn),  ");
+    data.append("L* a* b*,   DeltaL*   Deltaa*   Deltab*,  CIE 1976, ");
+    data.append("measC*  deltaC*  deltaH*,  Lcomp  Ccomp  Hcomp,");
+    data.append("delta E*CIE94 \n");
+    for(i = 0; i < 32; i++)
+    {
+        temp.sprintf("%d. %lf %lf %lf, %lf %lf %lf, %lf %lf %lf, "
+                     , i+1,
+                deltaE_data[i].fRaw_X,
+                deltaE_data[i].fRaw_Y,
+                deltaE_data[i].fRaw_Z,
+                deltaE_data[i].fRelative_X,
+                deltaE_data[i].fRelative_Y,
+                deltaE_data[i].fRelative_Z,
+
+                deltaE_data[i].fFn_X,
+                deltaE_data[i].fFn_Y,
+                deltaE_data[i].fFn_Z);
+        data.append(temp);
+        temp.sprintf("%lf %lf %lf, %lf %lf %lf, %lf,  %lf %lf %lf, ",
+                deltaE_data[i].fTestDisplay_L,
+                deltaE_data[i].fTestDisplay_a,
+                deltaE_data[i].fTestDisplay_b,
+                deltaE_data[i].fDelta_L,
+                deltaE_data[i].fDelta_a,
+                deltaE_data[i].fDelta_b,
+                deltaE_data[i].fDeltaE_CIE76,
+
+                deltaE_data[i].fMeas_C,
+                deltaE_data[i].fDelta_C,
+                deltaE_data[i].fDelta_H);
+           data.append(temp);
+           temp.sprintf("%lf %lf %lf, %lf ",
+                deltaE_data[i].fComp_L ,
+                deltaE_data[i].fComp_C ,
+                deltaE_data[i].fComp_H,
+
+                deltaE_data[i].fDelta_E);
+           data.append(temp);
+           data.append("\n");
+           Delta_E94 += deltaE_data[i].fDelta_E;
+           if(max_DeltaE94 < deltaE_data[i].fDelta_E)
+           {
+               max_DeltaE94 = deltaE_data[i].fDelta_E;
+           }
+
+    }
+    Delta_E94 = Delta_E94/32;
+    data.append("\nResults for In Gamut Colors:\n");
+    temp.sprintf("CIE 1994 Delta E*: %lf\n", Delta_E94);
+    data.append(temp);
+    temp.sprintf("Maximum Delta E*: %lf\n", max_DeltaE94);
+    data.append(temp);
     return saveFile(path, data);
 }

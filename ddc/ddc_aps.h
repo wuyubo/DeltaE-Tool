@@ -22,9 +22,10 @@ using setpara = int (*)(QString& text,quint8 *head,quint8& headsize);
 #define POSTGMA_SETCHANEL(chn) (writeDeltaEPostGammacmd.burndata[POSTGMA_CHANEL] = chn)
 #define POSTGMA_SETSIZE(size)  (writeDeltaEPostGammacmd.burndata[POSTGMA_SIZE] = size)
 #define POSTGMA_SETOFFSETH(offset) (writeDeltaEPostGammacmd.burndata[POSTGMA_OFFSET_H] = (offset&0xF0)>>8)
-#define POSTGMA_SETOFFSETL(offset) (writeDeltaEPostGammacmd.burndata[POSTGMA_OFFSET_L] = (offset&0x0F))
+#define POSTGMA_SETOFFSETL(offset) (writeDeltaEPostGammacmd.burndata[POSTGMA_OFFSET_L] = (offset))
 #define POSTGMA_SETOFFSET(offset)  POSTGMA_SETOFFSETH(offset);POSTGMA_SETOFFSETL(offset)
-
+#define COLORMATRIX_SETMODE(mode)  (writeDeltaEColorMatrixcmd.burndata[2] = mode)
+#define COLORMATRIX_SETSIZE(size)  (writeDeltaEColorMatrixcmd.burndata[3] = size)
 typedef struct burncmd{
     //ui relate
     QString name;

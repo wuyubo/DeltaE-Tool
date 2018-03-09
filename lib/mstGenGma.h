@@ -40,6 +40,7 @@ void getGamutVertice(int gamutType, int RGBW, double *sx, double *sy);
 void setGammaTrackType(int gmaTrackType);
 void setGammaPower(double gmaPwr);
 void setColorTempTrackType(int ctTrackType);
+void setColorTemperatureXY(double sx, double sy);
 
 void setColorTemperature(int colorTemp);
 void setDarkModifySettings(int darkModifyMode, int darkLevel);

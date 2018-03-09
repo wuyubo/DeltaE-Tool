@@ -319,6 +319,10 @@ void MstGenGmaCtr::msetColorTempTrackType(int ctTrackType)
 {
     setColorTempTrackType(ctTrackType);
 }
+void MstGenGmaCtr::msetColorTemperatureXY(double sx, double sy)
+{
+    setColorTemperatureXY(sx, sy);
+}
 
 void MstGenGmaCtr::msetColorTemperature(int colorTemp)
 {
