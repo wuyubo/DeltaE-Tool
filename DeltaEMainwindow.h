@@ -23,9 +23,9 @@ private slots:
     void actAbout();
     void actOpenColor();
     void actSendPat(cRGB_t rgb);
-    void actUpdateMsg();
+    void actUpdateMsg(LOGTEXTTYPE_t logType);
 private:
-    void showTipsMsg();
+    void showTipsMsg(LOGTEXTTYPE_t logType = LOG_NORMAL);
     void pBtnEnable(bool bEnable);
 
 private:

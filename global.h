@@ -64,6 +64,17 @@ typedef enum FUNCSTATUS
     FUNC_END,
 }FUNCSTATUS_t;
 
+typedef enum LOGTEXTTYPE
+{
+    LOG_NORMAL,
+    LOG_PASS,
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_TEXTBOX,
+    LOG_END,
+}LOGTEXTTYPE_t;
+
+
 //**********************************
 //global data end
 //**********************************

@@ -24,7 +24,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
         this->close();
     }
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
-    connect(pDteInterface, SIGNAL(updateMsgSignal()), this, SLOT(actUpdateMsg()));
+    connect(pDteInterface, SIGNAL(updateMsgSignal(LOGTEXTTYPE_t)), this, SLOT(actUpdateMsg(LOGTEXTTYPE_t)));
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -47,10 +47,12 @@ void DeltaEMainWindow::actConnect()
             strTips.append("connect success!\n");
             m_bisConnect = true;
             ui->pBtn_Connect->setText("disConnect");
+            showTipsMsg(LOG_PASS);
         }
         else
         {
             strTips.append("connect failed!\n");
+            showTipsMsg(LOG_ERROR);
         }
     }
     else
@@ -59,8 +61,8 @@ void DeltaEMainWindow::actConnect()
         m_bisConnect = false;
         ui->pBtn_Connect->setText("Connect");
         strTips.append("disConnect!\n");
+        showTipsMsg(LOG_PASS);
     }
-    showTipsMsg();
     pBtnEnable(true);
 }
 
@@ -70,7 +72,7 @@ void DeltaEMainWindow::actRun()
     if(colorUi == NULL)
     {
         strTips.append("please open color window......\n");
-        showTipsMsg();
+        showTipsMsg(LOG_ERROR);
         return;
     }
     strTips.append("Running......\n");
@@ -80,11 +82,12 @@ void DeltaEMainWindow::actRun()
     if(bResult)
     {
        strTips.append("result PASS!!!\n");
+       showTipsMsg(LOG_PASS);
     }else
     {
-       strTips.append("result FAIL!!!\n");
+       strTips.append("result FAIL!!!");
+       showTipsMsg(LOG_ERROR);
     }
-    showTipsMsg();
     pBtnEnable(true);
 }
 
@@ -93,8 +96,8 @@ void DeltaEMainWindow::actCheck()
     bool bResult = false;
     if(colorUi == NULL)
     {
-        strTips.append("please open color window......\n");
-        showTipsMsg();
+        strTips.append("please open color window......");
+        showTipsMsg(LOG_ERROR);
         return;
     }
     strTips.append("Check......\n");
@@ -103,12 +106,13 @@ void DeltaEMainWindow::actCheck()
     bResult = pDteInterface->dteCheck();
     if(bResult)
     {
-       strTips.append("result PASS!!!\n");
+       strTips.append("result PASS!!!");
+       showTipsMsg(LOG_PASS);
     }else
     {
-       strTips.append("result FAIL!!!\n");
+       strTips.append("result FAIL!!!");
+       showTipsMsg(LOG_ERROR);
     }
-    showTipsMsg();
     pBtnEnable(true);
 }
 
@@ -117,13 +121,15 @@ void DeltaEMainWindow::actAdjust()
     pBtnEnable(false);
     if(pDteInterface->dteAdjust())
     {
-        strTips.append("adjust success!!!\n");
+        strTips.append("adjust success!!!");
+        showTipsMsg(LOG_PASS);
     }
     else
     {
-        strTips.append("adjust fail!!!\n");
+        strTips.append("adjust fail!!!");
+        showTipsMsg(LOG_ERROR);
     }
-    showTipsMsg();
+
     pBtnEnable(true);
 }
 void DeltaEMainWindow::actOpenColor()
@@ -152,19 +158,38 @@ void DeltaEMainWindow::actSendPat(cRGB_t rgb)
         colorUi->updateColor();
     }
 }
-void DeltaEMainWindow::actUpdateMsg()
+void DeltaEMainWindow::actUpdateMsg(LOGTEXTTYPE_t logType)
 {
-    strTips.append(pDteInterface->getBackupMsg());
-    showTipsMsg();
+    strTips = pDteInterface->getBackupMsg();
+    showTipsMsg(logType);
 }
 
-void DeltaEMainWindow::showTipsMsg()
+void DeltaEMainWindow::showTipsMsg(LOGTEXTTYPE_t logType)
 {
-    ui->txt_Massage->setText(strTips);
-    //移动光标到末尾
-    QTextCursor cursor = ui->txt_Massage->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    ui->txt_Massage->setTextCursor(cursor);
+    QColor logColor = Qt::black;
+    switch(logType)
+    {
+        case LOG_NORMAL:
+            logColor = Qt::black;
+            break;
+        case LOG_PASS:
+            logColor = Qt::green;
+            break;
+        case LOG_ERROR:
+            logColor = Qt::red;
+            break;
+        case LOG_WARNING:
+            logColor = Qt::yellow;
+            break;
+        case LOG_TEXTBOX:
+            break;
+        default:
+            break;
+    }
+
+    ui->logtextBrowser->setTextColor(logColor);
+    ui->logtextBrowser->append(strTips);
+    strTips.clear();
 }
 
 void DeltaEMainWindow::pBtnEnable(bool bEnable)

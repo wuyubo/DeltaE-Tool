@@ -27,7 +27,7 @@ public:
     int dteCheck();
     bool dteAdjust();
     QString getBackupMsg();
-    void showMsg(QString msg);
+    void showMsg(QString msg, LOGTEXTTYPE_t logType = LOG_NORMAL);
     bool isStatus(FUNCSTATUS_t status);
     void setStatus(FUNCSTATUS_t status);
     //I2C
@@ -58,7 +58,7 @@ public:
     bool sRGB_DeltaEAdjustStep2(); //send Gamma to monitor
 signals:
     void sendPatSignal(cRGB_t rgb);
-    void updateMsgSignal();
+    void updateMsgSignal(LOGTEXTTYPE_t logType);
 public slots:
     void recvMsg(QString msg);
 private:

@@ -64,7 +64,7 @@ void DeltaEInterface::dteDisConnect()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...\n");
+        showMsg("pls connect...", LOG_ERROR);
         return;
     }
     if(i2cdevice->gethandle())
@@ -82,7 +82,7 @@ int DeltaEInterface::dteRun()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...\n");
+        showMsg("pls connect...", LOG_ERROR);
         return m_isConnect;
     }
     if(dteCheck())
@@ -98,7 +98,7 @@ int DeltaEInterface::dteCheck()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...\n");
+        showMsg("pls connect...", LOG_ERROR);
         return m_isConnect;
     }
     setStatus(FUNC_CHECK);
@@ -109,7 +109,7 @@ bool DeltaEInterface::dteAdjust()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...\n");
+        showMsg("pls connect...", LOG_ERROR);
         return m_isConnect;
     }
     //run to adjust
@@ -125,7 +125,7 @@ bool DeltaEInterface::connectI2C()
     }
     else
     {
-        showMsg("[I2C] connect I2C fail!! \n");
+        showMsg("[I2C] connect I2C fail!! ", LOG_ERROR);
         return false;
     }
 }
@@ -176,11 +176,11 @@ void DeltaEInterface::sendPattern(cRGB_t rgb)
         cmdSend(&writeDeltaERGBPaternCmd);
     }
 }
-void DeltaEInterface::showMsg(QString msg)
+void DeltaEInterface::showMsg(QString msg, LOGTEXTTYPE_t logType)
 {
     backupMsg.clear();
     backupMsg.append(msg);
-    emit updateMsgSignal();
+    emit updateMsgSignal(logType);
 }
 
 bool DeltaEInterface::isStatus(FUNCSTATUS_t status)
@@ -208,7 +208,7 @@ bool DeltaEInterface::sRGB_DeltaEVerify()
 
     if(!pCa210 || !pCa210->isConnect())
     {
-       showMsg("please connect Ca210...\n");
+       showMsg("please connect Ca210...", LOG_ERROR);
        return false;
     }
     sRGB_DeltaEVerifyStep0(); //0. load pattern
@@ -228,7 +228,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
         m_delayTimeMs = ADJUST_DALEY_MS;
     }
     m_pdata->update_PatRgb(isStatus(FUNC_CHECK), PATTERN_LEVEL); //load pattern file
-    temp.sprintf("Pattern Count: %d\n", m_pdata->pat_RgbCount);
+    temp.sprintf("Pattern Count: %d", m_pdata->pat_RgbCount);
     showMsg(temp);
     return true;
 }
@@ -244,7 +244,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep1()
     pca210 = pCa210->caMeasure();
     m_d100W_Raw_Y = pca210->fY;
 
-    temp.sprintf("100 White Y : %lf \n", m_d100W_Raw_Y);
+    temp.sprintf("100 White Y : %lf", m_d100W_Raw_Y);
     showMsg(temp);
     return true;
 }
@@ -272,7 +272,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
         {
             result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
             sRGBResult += result;
-            temp.sprintf("%d : %lf\n", pattern_index+1,result);
+            temp.sprintf("%d : %lf", pattern_index+1,result);
             showMsg(temp);
         }
         m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level*5), pattern_index%m_pdata->pat_Level,
@@ -293,12 +293,13 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
     {
         sRGBResult = sRGBResult/m_pdata->pat_RgbCount;
     }
-    temp.sprintf("result is %lf\n", sRGBResult);
-    showMsg(temp);
+    temp.sprintf("result is %lf", sRGBResult);
     if(sRGBResult < DET94_RESULT)
     {
+        showMsg(temp, LOG_PASS);
         return true;
     }
+    showMsg(temp, LOG_ERROR);
     return false;
 }
 
@@ -332,7 +333,7 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     pMstGenGma->msetGammaPower(2.2);
     pMstGenGma->msetColorTempTrackType(1);
     pMstGenGma->msetColorTemperatureXY(0.313,0.329);
-    pMstGenGma->msetDarkModifySettings(1, 1);
+    pMstGenGma->msetDarkModifySettings(1, 32);
     //pMstGenGma->mmstSetMeasPtnNum(nativeDataFmtType);
 
     //pMstGenGma->mmstSetCompressType(compGmaType);
@@ -412,7 +413,7 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
 {
     if (!i2cdevice->gethandle())
     {
-        showMsg("pleas open device first!!\n");
+        showMsg("pleas open device first!!", LOG_ERROR);
         return false;
     }
 
@@ -423,25 +424,25 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
     {
         if(x.length()>2)
         {
-            showMsg("Commands format error.\n");
+            showMsg("Commands format error.", LOG_ERROR);
             return false;
         }
     }
     if(cmdlist.size()>40)
     {
-        showMsg("you may send too much.\n");
+        showMsg("you may send too much.", LOG_ERROR);
         return false;
     }
     if(cmdlist.size()==0)
     {
-        showMsg("Just type something,man~\n");
+        showMsg("Just type something,man~", LOG_ERROR);
         return false;
     }
 
     quint8* ins = new quint8[cmdlist.size()];
     bool ok;
     showMsg("\n");
-    showMsg("User defined Instrucitons:\n");
+    showMsg("User defined Instrucitons:");
     QString _usrstr;
     for (int i = 0; i < cmdlist.size(); ++i)
     {
@@ -510,7 +511,7 @@ bool DeltaEInterface::sRGB_DeltaERun()
 {
     if(!pCa210 || !pCa210->isConnect())
     {
-       showMsg("please connect Ca210 or I2c device...\n");
+       showMsg("please connect Ca210 or I2c device...", LOG_ERROR);
        return false;
     }
     sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
@@ -527,7 +528,7 @@ bool DeltaEInterface::sRGB_DeltaERunstep0()
     {
         return sRGB_DeltaEVerifyStep0();
     }
-    showMsg("DeltaE Debug FAIL！！\n");
+    showMsg("DeltaE Debug FAIL！！", LOG_ERROR);
     return false;
 }
 
