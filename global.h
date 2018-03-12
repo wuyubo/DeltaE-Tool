@@ -74,7 +74,7 @@ typedef enum FUNCSTATUS
 #define DEF_COLOR  0
 #define _MAX_COMP_GMA_COUT 3*64
 #define _MAX_COLOR_MATRIX_COUT 18
-#define PATTERN_LEVEL  33
+#define PATTERN_LEVEL  9
 #define _MAX_NATIVE_COUT (4*5*PATTERN_LEVEL)
 
 //**********************************
@@ -85,8 +85,9 @@ typedef enum FUNCSTATUS
 //**********************************
 #define CA210_CHANNEL  0
 #define DEF_DALEY_MS   300
-#define ADJUST_DALEY_MS  50
+#define ADJUST_DALEY_MS  10
 #define CHECK_DALEY_MS   300
+#define DET94_RESULT    2.0
 //**********************************
 //CA210 data end
 //**********************************

@@ -63,6 +63,11 @@ bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
                 return true;
             }
         }
+        else if(feedback[1] == 0x82)
+        {
+            return true;
+
+        }
     }
 
     return false;

@@ -71,7 +71,10 @@ void DeltaEInterface::dteDisConnect()
     {
         i2cdevice->closeDevice(i2cdevice->gethandle());
     }
-    pCa210->caDisConnect();
+    if(pCa210->isConnect())
+    {
+        pCa210->caDisConnect();
+    }
     m_isConnect = false;
 }
 
@@ -82,6 +85,11 @@ int DeltaEInterface::dteRun()
         showMsg("pls connect...\n");
         return m_isConnect;
     }
+    if(dteCheck())
+    {
+        return true;
+    }
+    //if check failed, run to adjust.
     setStatus(FUNC_RUN);
     return sRGB_DeltaERun();
 }
@@ -104,7 +112,8 @@ bool DeltaEInterface::dteAdjust()
         showMsg("pls connect...\n");
         return m_isConnect;
     }
-    setStatus(FUNC_ADJUST);
+    //run to adjust
+    setStatus(FUNC_RUN);
     return sRGB_DeltaEAdjust();
 }
 bool DeltaEInterface::connectI2C()
@@ -252,21 +261,28 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
     {
         sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
         delayMs(m_delayTimeMs);//延时ms
-       // color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
+        //color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
        // color = testXYZ[pattern_index];
         pca210 = pCa210->caMeasure();
+        delayMs(40);//延时ms
+        //pca210->fX = color.fX;
+        //pca210->fY = color.fY;
+        //pca210->fZ = color.fZ;
         if(isStatus(FUNC_CHECK))
         {
             result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
             sRGBResult += result;
             temp.sprintf("%d : %lf\n", pattern_index+1,result);
+            showMsg(temp);
         }
-        m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level*5), pattern_index%m_pdata->pat_Level,pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-        temp.sprintf("%d : %lf %lf %lf \n", pattern_index+1,pca210->fX, pca210->fY, pca210->fZ);
-        showMsg(temp);
+        m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level*5), pattern_index%m_pdata->pat_Level,
+                                    pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
     }
     m_pdata->savePanelNativeData();
-    m_pdata->saveDeltaEData();
+    if(isStatus(FUNC_CHECK))
+    {
+        m_pdata->saveDeltaEData();
+    }
     return true;
 }
 
@@ -279,7 +295,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
     }
     temp.sprintf("result is %lf\n", sRGBResult);
     showMsg(temp);
-    if(sRGBResult < 2.0)
+    if(sRGBResult < DET94_RESULT)
     {
         return true;
     }
@@ -289,7 +305,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
 
 bool DeltaEInterface::sRGB_DeltaEAdjust()
 {
-    sRGB_DeltaEAdjustStep0();
+    sRGB_DeltaEAdjustStep0();//load native data
     sRGB_DeltaEAdjustStep1();// generate gamma
     return sRGB_DeltaEAdjustStep2();//send gamma to monitor
 }
@@ -309,26 +325,30 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     const int compGmaType = 0;// 0 : 64 bytes ,1 : 76 bytes
 
     m_pdata->getPanelNativeData(GmaIn);
-    //pMstGenGma->msetGammaEntries(gammaEntris);
-    //pMstGenGma->msetPanelNativeData(GmaIn, 2);
+    pMstGenGma->msetGammaEntries(gammaEntris);
+    pMstGenGma->msetPanelNativeData(GmaIn, 0);
     pMstGenGma->msetGamutType(gamutType);
-    pMstGenGma->msetDarkModifySettings(1, 16);
-    pMstGenGma->mmstSetMeasPtnNum(nativeDataFmtType);
-    pMstGenGma->mmstSetCompressType(compGmaType);
+    pMstGenGma->msetGammaTrackType(1);
+    pMstGenGma->msetGammaPower(2.2);
+    pMstGenGma->msetColorTempTrackType(1);
+    pMstGenGma->msetColorTemperatureXY(0.313,0.329);
+    pMstGenGma->msetDarkModifySettings(1, 1);
+    //pMstGenGma->mmstSetMeasPtnNum(nativeDataFmtType);
+
+    //pMstGenGma->mmstSetCompressType(compGmaType);
 
     //pMstGenGma->msetBrightModifySettings(0, 255);
-    //pMstGenGma->msetGammaTrackType(1);
-    //pMstGenGma->msetGammaPower(2.2);
-    //pMstGenGma->msetColorTempTrackType(1);
-    //pMstGenGma->msetColorTemperatureXY(0.313,0.329);
-    pMstGenGma->mmstSetTargetGamut(0, 0.6354, 0.3422);//R
-    pMstGenGma->mmstSetTargetGamut(1, 0.3031, 0.6170);//G
-    pMstGenGma->mmstSetTargetGamut(2, 0.1475, 0.0590);//B
-    pMstGenGma->mmstSetTargetGamut(3, 0.3124, 0.3284);//W
-    pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
+
+    //pMstGenGma->mmstSetTargetGamut(0, 0.6354, 0.3422);//R
+    //pMstGenGma->mmstSetTargetGamut(1, 0.3031, 0.6170);//G
+    //pMstGenGma->mmstSetTargetGamut(2, 0.1475, 0.0590);//B
+    //pMstGenGma->mmstSetTargetGamut(3, 0.3124, 0.3284);//W
+    //pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
 
     //pMstGenGma->mmstGenUserGamutData(GmaIn, outCompressBuf, sRgbCM);
-
+    pMstGenGma->mgenerateGamma();
+    pMstGenGma->mgetCompressedGmaData(compGmaType, outCompressBuf);
+    pMstGenGma->mgetColorMatrixData(sRgbCM);
     m_pdata->saveCompGma(outCompressBuf, 64*3);
     m_pdata->saveColorMatrix(sRgbCM, 18);
     return true;
@@ -373,8 +393,8 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
     COLORMATRIX_SETSIZE(18);
     cmdSend(&writeDeltaEColorMatrixcmd, psRgbCm, 18);
     //delayMs(40);
-    cmdSend(&readDeltaEACKcmd);
-    cmdSend(&readDeltaEACKcmd);
+    //cmdSend(&readDeltaEACKcmd);
+    //cmdSend(&readDeltaEACKcmd);
     cmdSend(&readDeltaEACKcmd);
     //退出调试模式
     return cmdSend(&exitDeltaEDebugcmd);
@@ -494,10 +514,10 @@ bool DeltaEInterface::sRGB_DeltaERun()
        return false;
     }
     sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
-    sRGB_DeltaERunstep1();
-    sRGB_DeltaERunstep2();
-    sRGB_DeltaERunstep3();
-    return sRGB_DeltaERunstep4();
+    sRGB_DeltaERunstep1(); //useless
+    sRGB_DeltaERunstep2(); //measure ca210
+    sRGB_DeltaERunstep3(); //monitor exit debug mode
+    return sRGB_DeltaERunstep4(); //adjust
 }
 
 bool DeltaEInterface::sRGB_DeltaERunstep0()
@@ -513,11 +533,7 @@ bool DeltaEInterface::sRGB_DeltaERunstep0()
 
 bool DeltaEInterface::sRGB_DeltaERunstep1()
 {
-    if(!isStatus(FUNC_CHECK))
-    {
-        return true;
-    }
-    return sRGB_DeltaEVerifyStep1();
+    return true;
 }
 
 bool DeltaEInterface::sRGB_DeltaERunstep2()
@@ -529,7 +545,7 @@ bool DeltaEInterface::sRGB_DeltaERunstep3()
 {
     cmdSend(&exitDeltaEDebugcmd);
     cmdSend(&exitDeltaEAutoGammacmd);
-    return sRGB_DeltaEVerifyStep3();
+    return true;
 }
 
 bool DeltaEInterface::sRGB_DeltaERunstep4()

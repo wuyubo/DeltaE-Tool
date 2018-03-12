@@ -8,7 +8,8 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     m_bisConnect = false;
-    colorUi = new ColorWindow(this);
+    colorUi = NULL;
+
     connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
     connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(actCheck()));
@@ -28,7 +29,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
 
 DeltaEMainWindow::~DeltaEMainWindow()
 {
-    if(colorUi != NULL)
+    if(colorUi)
     {
         delete colorUi;
     }
@@ -66,6 +67,12 @@ void DeltaEMainWindow::actConnect()
 void DeltaEMainWindow::actRun()
 {
     bool bResult = false;
+    if(colorUi == NULL)
+    {
+        strTips.append("please open color window......\n");
+        showTipsMsg();
+        return;
+    }
     strTips.append("Running......\n");
     showTipsMsg();
     pBtnEnable(false);
@@ -84,6 +91,12 @@ void DeltaEMainWindow::actRun()
 void DeltaEMainWindow::actCheck()
 {
     bool bResult = false;
+    if(colorUi == NULL)
+    {
+        strTips.append("please open color window......\n");
+        showTipsMsg();
+        return;
+    }
     strTips.append("Check......\n");
     showTipsMsg();
     pBtnEnable(false);
@@ -115,7 +128,11 @@ void DeltaEMainWindow::actAdjust()
 }
 void DeltaEMainWindow::actOpenColor()
 {
-    colorUi->show();
+    colorUi = new ColorWindow(this);
+    if(colorUi)
+    {
+        colorUi->show();
+    }
 }
 void DeltaEMainWindow::actAbout()
 {
@@ -129,8 +146,11 @@ void DeltaEMainWindow::actAbout()
 
 void DeltaEMainWindow::actSendPat(cRGB_t rgb)
 {
-   colorUi->setRGB(rgb);
-   colorUi->updateColor();
+    if(colorUi)
+    {
+        colorUi->setRGB(rgb);
+        colorUi->updateColor();
+    }
 }
 void DeltaEMainWindow::actUpdateMsg()
 {
