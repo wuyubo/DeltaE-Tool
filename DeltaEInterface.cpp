@@ -16,24 +16,18 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     i2cdevice = new Isp_I2C();
     m_pdata = new Data(this);
     pMstGenGma = new MstGenGmaCtr();
+    m_pDDCprotocol = new DDCProtocol_T(*i2cdevice);
     m_isConnect = false;
-    if(!pCa210 || !pMstGenGma || !i2cdevice ||!m_pdata)
+    if(!pCa210 || !pMstGenGma || !i2cdevice ||!m_pdata || !m_pDDCprotocol)
     {
         exit(-1);
     }
-    if(m_pdata->loadBurnSetting())
-    {
-        m_pBurnsettings = m_pdata->getBurnSetting();
-        m_pDDCprotocol = new DDCProtocol_T(*i2cdevice);
-        m_pDDCprotocol->setSlaveAddr(m_pBurnsettings->m_slaveaddr);
-        m_transfer = new Transfer_T(*m_pDDCprotocol,m_pBurnsettings->m_perpackretrycnt);
 
-        connect(m_pDDCprotocol,SIGNAL(start_emit(QString)),this,SLOT(recvMsg(QString)));
-    }
-    else
-    {
-        exit(-1);
-    }
+    m_pBurnsettings = m_pdata->getBurnSetting();
+    m_pDDCprotocol->setSlaveAddr(m_pBurnsettings->m_slaveaddr);
+    m_transfer = new Transfer_T(*m_pDDCprotocol,m_pBurnsettings->m_perpackretrycnt);
+
+    connect(m_pDDCprotocol,SIGNAL(start_emit(QString)),this,SLOT(recvMsg(QString)));
 }
 
 DeltaEInterface::~DeltaEInterface()
@@ -66,6 +60,7 @@ bool DeltaEInterface::dteConnect()
 }
 bool DeltaEInterface::connectCa210()
 {
+    QString temp;
 
     if(pCa210->caConnect(CA210_CHANNEL))
     {
@@ -74,20 +69,15 @@ bool DeltaEInterface::connectCa210()
 
         BYTE b1CAType[20] = {0};
         BYTE b1CAVersion[20] = {0};
-        int b1CATypeLength,b1CAVersionLength;
 
-        b1CATypeLength = pCa210->caGetCATypeName(b1CAType);
-        b1CAVersionLength = pCa210->caGetCAVersionName(b1CAVersion);
-        if(b1CAType[0] == 'C' && b1CAType[1] == 'A' && b1CAType[2] == '-' && b1CAType[3] == '2' && b1CAType[4] == '1' && b1CAType[5] == '0')
-        {
-           showMsg("Connect CA210", LOG_PASS);
-        }
-        else
-        {
-           showMsg("Connect CA310", LOG_PASS);
-        }
+        pCa210->caGetCATypeName(b1CAType);
+        pCa210->caGetCAVersionName(b1CAVersion);
+        temp.sprintf("Connect %s, Version: %s", b1CAType, b1CAVersion);
+        showMsg(temp, LOG_PASS);
+
         return true;
     }
+    showMsg("ca210 connect Fail !!!", LOG_ERROR);
     return false;
 }
 
@@ -116,12 +106,6 @@ int DeltaEInterface::dteRun()
         showMsg("pls connect...", LOG_ERROR);
         return m_isConnect;
     }
-    //run to adjust
-    setStatus(FUNC_RUN);
-    pCa210->caSetChannel(1);
-    pCa210->caSetSyncMode(0); //ntsc
-    pCa210->caSetSpeed(2); //fast
-    return sRGB_DeltaERun();
     //step1. Verify
     if(dteCheck())
     {
@@ -161,7 +145,7 @@ bool DeltaEInterface::dteAdjust()
     pCa210->caSetChannel(2);
     pCa210->caSetSyncMode(0); //ntsc
     pCa210->caSetSpeed(2); //fast
-    return sRGB_DeltaEAdjust();
+    return sRGB_DeltaERun();
 }
 void DeltaEInterface::dteTest(int r, int g, int b)
 {
@@ -208,33 +192,7 @@ bool DeltaEInterface::connectI2C()
         return false;
     }
 }
-BurnSetting_T *DeltaEInterface::readI2CSetting()
-{
-    QSettings Burn_Settings("Cvte","DeltaE Tool");
-    BurnSetting_T *pburnsettings;
-    Burn_Settings.beginGroup("Burn_setting");
-    quint8 tmp_slaveaddr = Burn_Settings.value("Burn_SlaveAddr",0x6E).toInt();
-    int tmp_I2cSpeed = Burn_Settings.value("Burn_I2cSpeed", 5).toInt();
-    int tmp_WriteDelay = Burn_Settings.value("Burn_writeDelay", 300).toInt();
-    int tmp_ReadDelay = Burn_Settings.value("Burn_readDelay", 200).toInt();
-    int tmp_RetryCnt = Burn_Settings.value("Burn_RetryCnt", 3).toInt();
-    int tmp_PerPackRetryCnt = Burn_Settings.value("Burn_PerPackRetryCnt",3).toInt();
-    int tmp_EdidlastDelay = Burn_Settings.value("Burn_EdidlastDelay", 600).toInt();
-    int tmp_HdcplastDelay = Burn_Settings.value("Burn_HdcplastDelay", 600).toInt();
-    int tmp_EraseHdcp = Burn_Settings.value("Burn_eraseHdcpkeyDelay", 444).toInt();
-    int tmp_IsCreatLogs =Burn_Settings.value("Burn_isCreatlogs", 0).toInt();
 
-    pburnsettings = new BurnSetting_T(tmp_slaveaddr,tmp_I2cSpeed,tmp_WriteDelay,tmp_ReadDelay,tmp_RetryCnt,tmp_PerPackRetryCnt,
-    tmp_EdidlastDelay,tmp_HdcplastDelay,tmp_EraseHdcp,(bool)tmp_IsCreatLogs);
-
-    Burn_Settings.endGroup();
-
-    QSettings At_cmds("Cvte","DeltaE Tool");
-    At_cmds.beginGroup("AT_Cmd");
-
-    At_cmds.endGroup();
-    return pburnsettings;
-}
 QString DeltaEInterface::getBackupMsg()
 {
     return backupMsg;
@@ -445,11 +403,11 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
 
     //pMstGenGma->msetBrightModifySettings(0, 255);
 
-    //pMstGenGma->mmstSetTargetGamut(0, 0.64, 0.33);//R
-    //pMstGenGma->mmstSetTargetGamut(1, 0.3, 0.6);//G
-    //pMstGenGma->mmstSetTargetGamut(2, 0.15, 0.06);//B
-    //pMstGenGma->mmstSetTargetGamut(3, 0.3127, 0.329);//W
-    //pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
+    pMstGenGma->mmstSetTargetGamut(0, 0.64, 0.33);//R
+    pMstGenGma->mmstSetTargetGamut(1, 0.3, 0.6);//G
+    pMstGenGma->mmstSetTargetGamut(2, 0.15, 0.06);//B
+    pMstGenGma->mmstSetTargetGamut(3, 0.3127, 0.329);//W
+    pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
 
     //pMstGenGma->mmstGenUserGamutData(GmaIn, outCompressBuf, sRgbCM);
     pMstGenGma->mgenerateGamma();

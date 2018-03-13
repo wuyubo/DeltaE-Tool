@@ -30,6 +30,7 @@ public:
     bool saveDeltaEData();
     void setBurnSetting(QString name, QString value);
     bool loadBurnSetting();
+    BurnSetting_T *defaultI2CSetting();
     BurnSetting_T *getBurnSetting();
 signals:
 

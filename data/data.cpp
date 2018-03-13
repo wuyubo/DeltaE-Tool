@@ -816,7 +816,38 @@ bool Data::loadBurnSetting()
     return false;
 }
 
+BurnSetting_T *Data::defaultI2CSetting()
+{
+    QSettings Burn_Settings("Cvte","DeltaE Tool");
+    BurnSetting_T *pburnsettings;
+    Burn_Settings.beginGroup("Burn_setting");
+    quint8 tmp_slaveaddr = Burn_Settings.value("Burn_SlaveAddr",0x6E).toInt();
+    int tmp_I2cSpeed = Burn_Settings.value("Burn_I2cSpeed", 5).toInt();
+    int tmp_WriteDelay = Burn_Settings.value("Burn_writeDelay", 300).toInt();
+    int tmp_ReadDelay = Burn_Settings.value("Burn_readDelay", 200).toInt();
+    int tmp_RetryCnt = Burn_Settings.value("Burn_RetryCnt", 3).toInt();
+    int tmp_PerPackRetryCnt = Burn_Settings.value("Burn_PerPackRetryCnt",3).toInt();
+    int tmp_EdidlastDelay = Burn_Settings.value("Burn_EdidlastDelay", 600).toInt();
+    int tmp_HdcplastDelay = Burn_Settings.value("Burn_HdcplastDelay", 600).toInt();
+    int tmp_EraseHdcp = Burn_Settings.value("Burn_eraseHdcpkeyDelay", 444).toInt();
+    int tmp_IsCreatLogs =Burn_Settings.value("Burn_isCreatlogs", 0).toInt();
+
+    pburnsettings = new BurnSetting_T(tmp_slaveaddr,tmp_I2cSpeed,tmp_WriteDelay,tmp_ReadDelay,tmp_RetryCnt,tmp_PerPackRetryCnt,
+    tmp_EdidlastDelay,tmp_HdcplastDelay,tmp_EraseHdcp,(bool)tmp_IsCreatLogs);
+
+    Burn_Settings.endGroup();
+
+    QSettings At_cmds("Cvte","DeltaE Tool");
+    At_cmds.beginGroup("AT_Cmd");
+
+    At_cmds.endGroup();
+    return pburnsettings;
+}
 BurnSetting_T * Data::getBurnSetting()
 {
+    if(!loadBurnSetting())
+    {
+        return defaultI2CSetting();
+    }
     return m_pBurnsettings;
 }
