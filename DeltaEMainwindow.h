@@ -22,6 +22,7 @@ private slots:
     void actAdjust();
     void actAbout();
     void actOpenColor();
+    void actTest();
     void actSendPat(cRGB_t rgb);
     void actUpdateMsg(LOGTEXTTYPE_t logType);
 private:

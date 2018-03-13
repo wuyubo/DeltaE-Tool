@@ -15,7 +15,7 @@
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
-#define SRGB_PATTERN_PATN "sRGB_patternL33.cvt"
+#define SRGB_PATTERN_PATN "sRGB_patternL"
 #define SRGB_PATTERN_SUFFIX ".cvt"
 #define GAMMA_TABLE_PATH  "./GammaTable.txt"
 #define COLOR_MATRIX_PATH "./ColorMatrix.txt"
@@ -66,6 +66,7 @@ typedef enum FUNCSTATUS
 
 typedef enum LOGTEXTTYPE
 {
+    LOG_NONE,
     LOG_NORMAL,
     LOG_PASS,
     LOG_ERROR,
@@ -96,9 +97,9 @@ typedef enum LOGTEXTTYPE
 //**********************************
 #define CA210_CHANNEL  0
 #define DEF_DALEY_MS   300
-#define ADJUST_DALEY_MS  10
+#define ADJUST_DALEY_MS  300
 #define CHECK_DALEY_MS   300
-#define DET94_RESULT    2.0
+#define CIE94_RESULT    2.0
 //**********************************
 //CA210 data end
 //**********************************

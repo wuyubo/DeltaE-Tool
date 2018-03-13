@@ -15,6 +15,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(actCheck()));
     connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(actAdjust()));
     connect(ui->pBtn_Color, SIGNAL(clicked()), this, SLOT(actOpenColor()));
+    connect(ui->pBtn_Test, SIGNAL(clicked()), this, SLOT(actTest()));
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(actAbout()));
 
@@ -42,6 +43,8 @@ void DeltaEMainWindow::actConnect()
     pBtnEnable(false);
     if(m_bisConnect == false)
     {
+        strTips.append("connect....");
+        showTipsMsg();
         if(pDteInterface->dteConnect())
         {
             strTips.append("connect success!\n");
@@ -140,6 +143,12 @@ void DeltaEMainWindow::actOpenColor()
         colorUi->show();
     }
 }
+void DeltaEMainWindow::actTest()
+{
+    pDteInterface->dteTest(ui->txt_R->text().toInt(),
+                           ui->txt_G->text().toInt(),
+                           ui->txt_B->text().toInt());
+}
 void DeltaEMainWindow::actAbout()
 {
     QMessageBox::about(this, tr("About"),
@@ -169,6 +178,8 @@ void DeltaEMainWindow::showTipsMsg(LOGTEXTTYPE_t logType)
     QColor logColor = Qt::black;
     switch(logType)
     {
+        case LOG_NONE:
+            return;
         case LOG_NORMAL:
             logColor = Qt::black;
             break;

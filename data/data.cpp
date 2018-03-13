@@ -243,6 +243,7 @@ Data::Data(QObject *parent) : QObject(parent)
 {
    int i;
    init_PatRgbList();
+   m_pBurnsettings = new BurnSetting_T();
    pat_Level = PATTERN_LEVEL;
    for(i = 0; i < 4*5*pat_Level; i++)
    {
@@ -262,61 +263,38 @@ void Data::init_PatRgbList()
 
 bool Data::load_PatRgb()
 {
-    QString temp, path;
-    QStringList ListRgb;
+    QString temp, path, data;
+    QStringList ListRgb, tempList;
     cRGB_t rgb;
     int index = 0;
-    char cBuf[128];
-    qint64 LineLen;
     path.sprintf("%s%d%s",SRGB_PATTERN_PATN,PATTERN_LEVEL, SRGB_PATTERN_SUFFIX);
-    QFile file(SRGB_PATTERN_PATN);      //---打开文件
-    if (file.open(QIODevice :: ReadOnly)) //  以只读的方式打开
+    data = readFile(path);
+    ListRgb = data.split("\n", QString::SkipEmptyParts);
+    if(ListRgb.length() > 0)
     {
-        do
+        pat_RgbCount = ListRgb[0].toInt();
+    }
+    if(ListRgb.length() < pat_RgbCount+2)
+    {
+        return false;
+    }
+    for(index = 2; index < ListRgb.length(); index++)
+    {
+        tempList = ListRgb[index].split(' ', QString::SkipEmptyParts);
+        if(tempList.length() > 3)
         {
-            LineLen = file.readLine(cBuf, sizeof(cBuf)); //---读取文本文件的一行
-            if (-1 != LineLen)                          //---读取成功，将返回读取的字节，读取失败，将返回-1
-            {
-                temp = QString(QLatin1String(cBuf));
-                if(index == 0)
-                {
-                    pat_RgbCount = temp.toInt();
-                }
-                else if(index > 1)
-                {
-                    ListRgb.clear();
-                    ListRgb = temp.split(' ', QString::SkipEmptyParts);//temp.split(",");
-                    if(ListRgb.length() < 4)
-                    {
-                        continue;
-                    }
-                    rgb.red = ListRgb[1].toInt();
-                    rgb.green = ListRgb[2].toInt();
-                    rgb.blue = ListRgb[3].toInt();
-                    pat_RgbList[index-2] = rgb;
-                }
-                index++;
-            }
-        }while(-1 != LineLen);
-        if(pat_RgbCount > index-2)
-        {
-            pat_RgbCount = index-2;
+            rgb.red = tempList[1].toInt();
+            rgb.green = tempList[2].toInt();
+            rgb.blue = tempList[3].toInt();
+            pat_RgbList[index-2] = rgb;
         }
     }
-    else
-    {
-        goto loaderr;
-    }
-    //----关闭文件，这里请注意，打开文件后，在不对文件操作时，请关闭文件，避免数据丢失
-    file.close();
     return true;
-loaderr:
-    file.close();
-    return false;
 }
 
 void Data::update_PatRgb(bool isCheck, BYTE Level)
 {
+    Level = Level;
     if(isCheck)
     {
         init_PatRgbList();
@@ -566,11 +544,11 @@ bool Data::savePanelNativeData()
     QString data, temp, path;
     int i, rgbw = 0;
     path.sprintf("%s%d%s", NATIVE_PATH, pat_Level, NATIVE_SUFFIX);
-    temp.sprintf("LEVEL%d\n",pat_Level);
+    temp.sprintf("LEVEL %d\n",pat_Level);
     data.append(temp);
     for(i = 0 ; i<4*5*pat_Level; i++)
     {
-       temp.sprintf("%lf\n", m_Native_RGBW[i]);
+       temp.sprintf("%.16lf\n", m_Native_RGBW[i]);
        rgbw = i/(5*pat_Level);
        if(rgbw == 0 && i%pat_Level == 0)
        {
@@ -775,4 +753,70 @@ bool Data::saveDeltaEData()
     temp.sprintf("Maximum Delta E*: %lf\n", max_DeltaE94);
     data.append(temp);
     return saveFile(path, data);
+}
+
+void Data::setBurnSetting(QString name, QString value)
+{
+    bool ok;
+    if(name == "Burn_SlaveAddr")
+    {
+        value.replace("0x", "");
+        m_pBurnsettings->setSlaveaddr((BYTE)value.toUInt(&ok, 16));
+    }
+    else if(name == "Burn_I2cSpeed")
+    {
+        m_pBurnsettings->setI2cSpeed(value.toInt());
+    }
+    else if(name == "Burn_writeDelay")
+    {
+        m_pBurnsettings->setwriteDelay(value.toInt());
+    }
+    else if(name == "Burn_readDelay")
+    {
+        m_pBurnsettings->setreadDelay(value.toInt());
+    }
+    else if(name == "Burn_RetryCnt")
+    {
+        m_pBurnsettings->setRetryCnt(value.toInt());
+    }
+    else if(name == "Burn_PerPackRetryCnt")
+    {
+        m_pBurnsettings->setPerpackRetryCnt(value.toInt());
+    }
+}
+
+bool Data::loadBurnSetting()
+{
+    QString data, path;
+    int i;
+    QStringList dataList, tempList;
+    path.sprintf("setting.txt");
+    data = readFile(path);
+    dataList = data.split("[I2C START]");
+
+    if(dataList.length()>1)
+    {
+        dataList = dataList[1].split("[I2C END]");
+        if(dataList.length() > 0)
+        {
+            dataList = dataList[0].split("\n", QString::SkipEmptyParts);
+
+            for(i = 0;i < dataList.length(); i++)
+            {
+                dataList[i].replace(" ", "");
+                tempList = dataList[i].split("=", QString::SkipEmptyParts);
+                if(tempList.length() > 1)
+                {
+                    setBurnSetting(tempList[0], tempList[1]);
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+BurnSetting_T * Data::getBurnSetting()
+{
+    return m_pBurnsettings;
 }

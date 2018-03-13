@@ -1,8 +1,9 @@
 #ifndef DATA_H
 #define DATA_H
 #include "global.h"
+#include "ddc/burnsetting.h"
 #include <QObject>
-
+using namespace ddc;
 class Data : public QObject
 {
     Q_OBJECT
@@ -27,6 +28,9 @@ public:
     bool savePanelNativeData();
     bool loadPanelNativeData();
     bool saveDeltaEData();
+    void setBurnSetting(QString name, QString value);
+    bool loadBurnSetting();
+    BurnSetting_T *getBurnSetting();
 signals:
 
 public slots:
@@ -37,6 +41,7 @@ public:
     double m_Native_RGBW[_MAX_NATIVE_COUT];
     int pat_RgbCount;
     int pat_Level;
+    BurnSetting_T *m_pBurnsettings;
 };
 
 #endif // DATA_H

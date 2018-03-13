@@ -13,23 +13,27 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     func_status = FUNC_NONE;
     m_delayTimeMs = DEF_DALEY_MS;
     pCa210 = new Ca210DllCtr(CA210DLL);
+    i2cdevice = new Isp_I2C();
+    m_pdata = new Data(this);
     pMstGenGma = new MstGenGmaCtr();
     m_isConnect = false;
-    if(!pCa210 || !pMstGenGma)
+    if(!pCa210 || !pMstGenGma || !i2cdevice ||!m_pdata)
     {
         exit(-1);
     }
-    m_pBurnsettings = readI2CSetting();
-    i2cdevice = new Isp_I2C();
-    m_pDDCprotocol = new DDCProtocol_T(*i2cdevice);
-    m_pDDCprotocol->setSlaveAddr(m_pBurnsettings->m_slaveaddr);
-    m_transfer = new Transfer_T(*m_pDDCprotocol,m_pBurnsettings->m_perpackretrycnt);
-    m_pdata = new Data(this);
-    if(m_pdata == NULL)
+    if(m_pdata->loadBurnSetting())
+    {
+        m_pBurnsettings = m_pdata->getBurnSetting();
+        m_pDDCprotocol = new DDCProtocol_T(*i2cdevice);
+        m_pDDCprotocol->setSlaveAddr(m_pBurnsettings->m_slaveaddr);
+        m_transfer = new Transfer_T(*m_pDDCprotocol,m_pBurnsettings->m_perpackretrycnt);
+
+        connect(m_pDDCprotocol,SIGNAL(start_emit(QString)),this,SLOT(recvMsg(QString)));
+    }
+    else
     {
         exit(-1);
     }
-    connect(m_pDDCprotocol,SIGNAL(start_emit(QString)),this,SLOT(recvMsg(QString)));
 }
 
 DeltaEInterface::~DeltaEInterface()
@@ -54,12 +58,39 @@ DeltaEInterface::~DeltaEInterface()
 
 bool DeltaEInterface::dteConnect()
 {
-    if(connectI2C()&& pCa210->caConnect(CA210_CHANNEL))
+    if(connectI2C()&& connectCa210())
     {
         m_isConnect = true;
     }
     return m_isConnect;
 }
+bool DeltaEInterface::connectCa210()
+{
+
+    if(pCa210->caConnect(CA210_CHANNEL))
+    {
+        pCa210->caSetSyncMode(0); //ntsc
+        pCa210->caSetSpeed(1); //fast
+
+        BYTE b1CAType[20] = {0};
+        BYTE b1CAVersion[20] = {0};
+        int b1CATypeLength,b1CAVersionLength;
+
+        b1CATypeLength = pCa210->caGetCATypeName(b1CAType);
+        b1CAVersionLength = pCa210->caGetCAVersionName(b1CAVersion);
+        if(b1CAType[0] == 'C' && b1CAType[1] == 'A' && b1CAType[2] == '-' && b1CAType[3] == '2' && b1CAType[4] == '1' && b1CAType[5] == '0')
+        {
+           showMsg("Connect CA210", LOG_PASS);
+        }
+        else
+        {
+           showMsg("Connect CA310", LOG_PASS);
+        }
+        return true;
+    }
+    return false;
+}
+
 void DeltaEInterface::dteDisConnect()
 {
     if(!m_isConnect)
@@ -85,13 +116,23 @@ int DeltaEInterface::dteRun()
         showMsg("pls connect...", LOG_ERROR);
         return m_isConnect;
     }
+    //run to adjust
+    setStatus(FUNC_RUN);
+    pCa210->caSetChannel(1);
+    pCa210->caSetSyncMode(0); //ntsc
+    pCa210->caSetSpeed(2); //fast
+    return sRGB_DeltaERun();
+    //step1. Verify
     if(dteCheck())
     {
         return true;
     }
-    //if check failed, run to adjust.
-    setStatus(FUNC_RUN);
-    return sRGB_DeltaERun();
+    delayMs(300);
+    //step2. if Verify failed, run to adjust.
+    dteAdjust();
+    delayMs(300);
+    //step3. Verify again
+    return dteCheck();
 }
 
 int DeltaEInterface::dteCheck()
@@ -102,6 +143,9 @@ int DeltaEInterface::dteCheck()
         return m_isConnect;
     }
     setStatus(FUNC_CHECK);
+    pCa210->caSetChannel(0);
+    pCa210->caSetSyncMode(0); //ntsc
+    pCa210->caSetSpeed(2); //slow
     return sRGB_DeltaEVerify();;
 }
 
@@ -113,11 +157,46 @@ bool DeltaEInterface::dteAdjust()
         return m_isConnect;
     }
     //run to adjust
-    setStatus(FUNC_RUN);
+    setStatus(FUNC_ADJUST);
+    pCa210->caSetChannel(2);
+    pCa210->caSetSyncMode(0); //ntsc
+    pCa210->caSetSpeed(2); //fast
     return sRGB_DeltaEAdjust();
 }
+void DeltaEInterface::dteTest(int r, int g, int b)
+{
+    LPCA210DATASTRUCT pca210;
+    QString temp;
+    cRGB_t testPat = {r, g, b};
+    if(!m_isConnect)
+    {
+        showMsg("pls connect...", LOG_ERROR);
+        return;
+    }
+    setStatus(FUNC_RUN);
+    pCa210->caSetChannel(1);
+    pCa210->caSetSyncMode(0); //ntsc
+    pCa210->caSetSpeed(2); //fast
+    cmdSend(&enterDeltaEDebugcmd);
+    cmdSend(&enterDeltaEAutoGammacmd);
+    sendPattern(testPat);//SEND 100% White pattern
+    delayMs(300);//延时ms
+    pca210 = pCa210->caMeasure();
+
+    temp.sprintf("Test : %.16lf, %.16lf, %.16lf, %.16lf, %.16lf",
+                 pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+    showMsg(temp);
+    cmdSend(&exitDeltaEDebugcmd);
+    cmdSend(&exitDeltaEAutoGammacmd);
+}
+
 bool DeltaEInterface::connectI2C()
 {
+    if(i2cdevice->gethandle())
+    {
+        i2cdevice->closeDevice(i2cdevice->gethandle());
+    }
+
     DEBUGMSG("the i2c speed:%d",m_pBurnsettings->getI2cSpeed());
     if (i2cdevice->openDevice(i2cdevice->gethandle(),m_pBurnsettings->getI2cSpeed()*1000.0f) == FTC_SUCCESS)
     {
@@ -275,13 +354,27 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
             temp.sprintf("%d : %lf", pattern_index+1,result);
             showMsg(temp);
         }
-        m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level*5), pattern_index%m_pdata->pat_Level,
+        else
+        {
+            m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level), pattern_index%m_pdata->pat_Level,
                                     pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            temp.sprintf("%d,%d(%d, %d, %d): %.16lf",  pattern_index/(m_pdata->pat_Level),
+                          pattern_index%m_pdata->pat_Level,
+                         m_pdata->pat_RgbList[pattern_index].red,
+                         m_pdata->pat_RgbList[pattern_index].green,
+                         m_pdata->pat_RgbList[pattern_index].blue,
+                         pca210->fX);
+            showMsg(temp);
+        }
     }
-    m_pdata->savePanelNativeData();
+
     if(isStatus(FUNC_CHECK))
     {
         m_pdata->saveDeltaEData();
+    }
+    else
+    {
+        m_pdata->savePanelNativeData();
     }
     return true;
 }
@@ -294,7 +387,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
         sRGBResult = sRGBResult/m_pdata->pat_RgbCount;
     }
     temp.sprintf("result is %lf", sRGBResult);
-    if(sRGBResult < DET94_RESULT)
+    if(sRGBResult < CIE94_RESULT)
     {
         showMsg(temp, LOG_PASS);
         return true;
@@ -316,39 +409,62 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     BYTE outCompressBuf[64*3];
     BYTE sRgbCM[19];
     const int gammaEntris = 256;
+    double nativeGammaTbl[3][gammaEntris];
+    double fixGammaTbl[3][gammaEntris];
     //nativeDataFmtType=0:9_ptn,1:17_ptn,2:33_ptn,3:65_ptn,4:129_ptn,5:256_ptn,
     //6 : RGB_1ptn_W_9ptn
     const int nativeDataFmtType = m_pdata->pat_Level;
     //gamutType = 0: disable, 1 : sRGB(gma 2.2), 2 : adobeRGB(gma 2.2), 3 : BT709(gma 2.4),
     //4 : BT2020(gma 2.4), 5 : DCI_P3(gma 2.6), 6 : User_define(gma 2.2)
-    const int gamutType = 1;
+    int gamutType = 1;
     //Set compression type to none data loss compression method.
     const int compGmaType = 0;// 0 : 64 bytes ,1 : 76 bytes
 
+    const int gammaTrackType = 0; // 0:N/A, 1:User_define, 2:DICOM
+    const int ctTrackType = 0; //0:N/A., 1:Panel native, 2:User_define
+    const double sx = 0.3127; //sy, sy target of color temperature 6500k
+    const double sy = 0.329;
+    const double gammaPower = 2.2;//based on gamut type
+
+    m_pdata->loadPanelNativeData();
     m_pdata->getPanelNativeData(GmaIn);
     pMstGenGma->msetGammaEntries(gammaEntris);
     pMstGenGma->msetPanelNativeData(GmaIn, 0);
     pMstGenGma->msetGamutType(gamutType);
-    pMstGenGma->msetGammaTrackType(1);
-    pMstGenGma->msetGammaPower(2.2);
-    pMstGenGma->msetColorTempTrackType(1);
-    pMstGenGma->msetColorTemperatureXY(0.313,0.329);
-    pMstGenGma->msetDarkModifySettings(1, 32);
+    pMstGenGma->msetGammaTrackType(gammaTrackType);
+    pMstGenGma->msetGammaPower(gammaPower);
+    pMstGenGma->msetColorTempTrackType(ctTrackType);
+    pMstGenGma->msetColorTemperature(6500);
+    pMstGenGma->msetColorTemperatureXY(sx,sy);
+    pMstGenGma->mmstSetDarkModifySettings(0, 1, 1);
+    pMstGenGma->msetBrightModifySettings(0, 255);
+    //pMstGenGma->msetDarkModifySettings(4, 0);
     //pMstGenGma->mmstSetMeasPtnNum(nativeDataFmtType);
 
     //pMstGenGma->mmstSetCompressType(compGmaType);
 
     //pMstGenGma->msetBrightModifySettings(0, 255);
 
-    //pMstGenGma->mmstSetTargetGamut(0, 0.6354, 0.3422);//R
-    //pMstGenGma->mmstSetTargetGamut(1, 0.3031, 0.6170);//G
-    //pMstGenGma->mmstSetTargetGamut(2, 0.1475, 0.0590);//B
-    //pMstGenGma->mmstSetTargetGamut(3, 0.3124, 0.3284);//W
+    //pMstGenGma->mmstSetTargetGamut(0, 0.64, 0.33);//R
+    //pMstGenGma->mmstSetTargetGamut(1, 0.3, 0.6);//G
+    //pMstGenGma->mmstSetTargetGamut(2, 0.15, 0.06);//B
+    //pMstGenGma->mmstSetTargetGamut(3, 0.3127, 0.329);//W
     //pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
 
     //pMstGenGma->mmstGenUserGamutData(GmaIn, outCompressBuf, sRgbCM);
     pMstGenGma->mgenerateGamma();
+    pMstGenGma->mgetGammaData(&nativeGammaTbl[0][0]);
+
+    //gamutType = 0;
+    //pMstGenGma->msetGamutType(gamutType);
+    //pMstGenGma->msetGammaTrackType(gammaTrackType);
+    //pMstGenGma->msetGammaPower(gammaPower);
+    //pMstGenGma->msetColorTempTrackType(ctTrackType);
+   // pMstGenGma->msetColorTemperatureXY(sx,sy);
+    //pMstGenGma->mgenerateGamma();
+
     pMstGenGma->mgetCompressedGmaData(compGmaType, outCompressBuf);
+    //pMstGenGma->mgetGammaData(&fixGammaTbl[0][0]);
     pMstGenGma->mgetColorMatrixData(sRgbCM);
     m_pdata->saveCompGma(outCompressBuf, 64*3);
     m_pdata->saveColorMatrix(sRgbCM, 18);
@@ -377,7 +493,7 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
         cmdSend(&readDeltaEACKcmd);
         //发送 GAMMA MODE 0 ，Channel i，后32字节s
         POSTGMA_SETSIZE(32);
-        POSTGMA_SETOFFSETL(32);
+        POSTGMA_SETOFFSET(32);
         cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*64+32, 32);
         delayMs(40);
         //cmdSend(&readDeltaEACKcmd);
@@ -403,7 +519,7 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
 
 bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
 {
-    if(isStatus(FUNC_ADJUST))
+    if(isStatus(FUNC_ADJUST) || isStatus(FUNC_RUN))
     {
         m_pdata->loadPanelNativeData();
     }
@@ -450,8 +566,7 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
         _usrstr.append(cmdlist.at(i));
         _usrstr.append(" ");
     }
-    //showMsg(_usrstr.toUpper());
-   // showMsg("\n");
+
     //send
     burnCmd_t c =
     {
@@ -504,7 +619,7 @@ bool DeltaEInterface::cmdSend(burnCmd_t *cmd,quint8 *data, quint32 size,quint8 s
 
 void DeltaEInterface::recvMsg(QString msg)
 {
-    showMsg(msg);
+    showMsg(msg, LOG_NONE);
 }
 
 bool DeltaEInterface::sRGB_DeltaERun()
@@ -526,6 +641,7 @@ bool DeltaEInterface::sRGB_DeltaERunstep0()
     if(cmdSend(&enterDeltaEDebugcmd)
        && cmdSend(&enterDeltaEAutoGammacmd))
     {
+        delayMs(300);
         return sRGB_DeltaEVerifyStep0();
     }
     showMsg("DeltaE Debug FAIL！！", LOG_ERROR);

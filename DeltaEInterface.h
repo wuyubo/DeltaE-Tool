@@ -22,10 +22,12 @@ public:
     explicit DeltaEInterface(QObject *parent = 0);
     ~DeltaEInterface();
     bool dteConnect();
+    bool connectCa210();
     void dteDisConnect();
     int dteRun();
     int dteCheck();
     bool dteAdjust();
+    void dteTest(int r, int g, int b);
     QString getBackupMsg();
     void showMsg(QString msg, LOGTEXTTYPE_t logType = LOG_NORMAL);
     bool isStatus(FUNCSTATUS_t status);

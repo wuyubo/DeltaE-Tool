@@ -1,0 +1,13 @@
+-----------setting--------------------
+[I2C START]
+Burn_SlaveAddr = 0x6E
+Burn_I2cSpeed  = 5
+Burn_writeDelay = 100
+Burn_readDelay  = 50
+Burn_RetryCnt  = 3
+Burn_PerPackRetryCnt = 3
+Burn_EdidlastDelay = 600
+Burn_HdcplastDelay = 600
+Burn_eraseHdcpkeyDelay = 444
+Burn_isCreatlogs  = 0
+[I2C END]
