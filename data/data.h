@@ -13,7 +13,7 @@ public:
     bool load_PatRgb();
     void createPattern(BYTE Level);
     int getPatternCount();
-    void update_PatRgb( bool isCheck, BYTE Level = 9);
+    void update_PatRgb( bool isCheck);
     QString readFile(QString path);
     bool saveFile(QString path, QString data, bool isCover = true);
     bool saveCompGma(BYTE *pCompressGma, int size);

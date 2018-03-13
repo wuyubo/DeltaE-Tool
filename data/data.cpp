@@ -292,15 +292,17 @@ bool Data::load_PatRgb()
     return true;
 }
 
-void Data::update_PatRgb(bool isCheck, BYTE Level)
+void Data::update_PatRgb(bool isCheck)
 {
-    Level = Level;
     if(isCheck)
     {
         init_PatRgbList();
     }else
     {
-        load_PatRgb();
+        if(load_PatRgb() == false)
+        {
+            createPattern(pat_Level);
+        }
     }
 }
 void Data::createPattern(BYTE Level)

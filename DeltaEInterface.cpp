@@ -264,7 +264,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
     {
         m_delayTimeMs = ADJUST_DALEY_MS;
     }
-    m_pdata->update_PatRgb(isStatus(FUNC_CHECK), PATTERN_LEVEL); //load pattern file
+    m_pdata->update_PatRgb(isStatus(FUNC_CHECK)); //load pattern file
     temp.sprintf("Pattern Count: %d", m_pdata->pat_RgbCount);
     showMsg(temp);
     return true;
