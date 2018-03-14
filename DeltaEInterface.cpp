@@ -420,10 +420,10 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     const double targetWx = m_pdata->deltaEStting->targetGamutWx;
     const double targetWy = m_pdata->deltaEStting->targetGamutWy;
     const float  maxBrightnessRatio = m_pdata->deltaEStting->maxBrightnessRatio;
-    QString temp;
-    temp.sprintf("gammaEntris:%d, nativeDataFmtType:%d, gamutType:%d,darkModifyLevel:%d "
-                 , gammaEntris, nativeDataFmtType, gamutType, darkModifyLevel);
-    showMsg(temp);
+    //QString temp;
+    //temp.sprintf("gammaEntris:%d, nativeDataFmtType:%d, gamutType:%d,darkModifyLevel:%d "
+     //            , gammaEntris, nativeDataFmtType, gamutType, darkModifyLevel);
+    //showMsg(temp);
     //step 0. measured XYZxy NativeData
     m_pdata->loadPanelNativeData();
     m_pdata->getPanelNativeData(GmaIn);
@@ -463,13 +463,13 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
         pMstGenGma->mmstSetTargetGamut(COLOR_W, targetWx, targetWy);//W
     }
 
-    pMstGenGma->mmstSetCompressType(compGmaType);
-    pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
+    //pMstGenGma->mmstSetCompressType(compGmaType);
+    //pMstGenGma->mmstGenGamutData(GmaIn, gammaEntris, gamutType, outCompressBuf,sRgbCM);
     //pMstGenGma->mmstGenUserGamutData(GmaIn, outCompressBuf, sRgbCM);
     //step 6. generate gamma data and get gamma data
-    //pMstGenGma->mgenerateGamma();
-    //pMstGenGma->mgetCompressedGmaData(compGmaType, outCompressBuf);
-    //pMstGenGma->mgetColorMatrixData(sRgbCM);
+    pMstGenGma->mgenerateGamma();
+    pMstGenGma->mgetCompressedGmaData(compGmaType, outCompressBuf);
+    pMstGenGma->mgetColorMatrixData(sRgbCM);
     m_pdata->saveCompGma(outCompressBuf, compDataSize*3);
     m_pdata->saveColorMatrix(sRgbCM, sRgbCMDataSize);
     return true;

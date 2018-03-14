@@ -10,9 +10,6 @@ ColorWindow::ColorWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->btn_next, SIGNAL(clicked()), this, SLOT(nextColor()));
-    connect(ui->btn_pause, SIGNAL(clicked()), this, SLOT(actStopTimer()));
-
     m_pTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
     //actStartTimer();

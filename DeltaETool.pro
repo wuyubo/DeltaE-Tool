@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     deltaE/DeltaE.c \
     data/data.cpp \
     ddc/transfer.cpp \
-    ddc/ddc_protocol.cpp
+    ddc/ddc_protocol.cpp \
+    workerthread.cpp
 
 HEADERS  += DeltaEMainwindow.h \
     lib/mstGenGma.h \
@@ -47,7 +48,8 @@ HEADERS  += DeltaEMainwindow.h \
     deltaE/DeltaE.h \
     data/data.h \
     ddc/transfer.h \
-    ddc/ddc_protocol.h
+    ddc/ddc_protocol.h \
+    workerthread.h
 
 FORMS    += DeltaEMainwindow.ui \
     colorwindow.ui

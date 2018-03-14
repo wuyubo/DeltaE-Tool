@@ -29,32 +29,6 @@
     <string/>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_next">
-   <property name="geometry">
-    <rect>
-     <x>680</x>
-     <y>510</y>
-     <width>93</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>next</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_pause">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>510</y>
-     <width>93</width>
-     <height>28</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>pause</string>
-   </property>
-  </widget>
  </widget>
  <resources/>
  <connections/>

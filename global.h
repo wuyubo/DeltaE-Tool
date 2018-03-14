@@ -66,6 +66,7 @@ typedef enum FUNCSTATUS
     FUNC_CHECK,
     FUNC_ADJUST,
     FUNC_RUN,
+    FUNC_CONNECT,
     FUNC_END,
 }FUNCSTATUS_t;
 enum COLOR

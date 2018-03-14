@@ -3,6 +3,7 @@
 
 #include "DeltaEInterface.h"
 #include "colorwindow.h"
+#include "workerthread.h"
 #include <QMainWindow>
 namespace Ui {
 class DeltaEMainWindow;
@@ -25,6 +26,7 @@ private slots:
     void actTest();
     void actSendPat(cRGB_t rgb);
     void actUpdateMsg(LOGTEXTTYPE_t logType);
+    void actWorkFeeback(FUNCSTATUS_t status, bool result);
 private:
     void showTipsMsg(LOGTEXTTYPE_t logType = LOG_NORMAL);
     void pBtnEnable(bool bEnable);
@@ -35,6 +37,7 @@ private:
     DeltaEInterface *pDteInterface;
     QString strTips;
     bool m_bisConnect;
+    WorkerThread *workerThread;
 };
 
 #endif // DELTAEMAINWINDOW_H

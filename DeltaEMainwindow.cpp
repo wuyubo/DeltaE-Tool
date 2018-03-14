@@ -1,6 +1,7 @@
 #include "DeltaEMainwindow.h"
 #include "ui_DeltaEMainwindow.h"
 #include <QMessageBox>
+#include <QMetaType>
 
 DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -9,6 +10,10 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     ui->setupUi(this);
     m_bisConnect = false;
     colorUi = NULL;
+    workerThread = new WorkerThread(this);
+    qRegisterMetaType<LOGTEXTTYPE_t>("LOGTEXTTYPE_t");//注册LOGTEXTTYPE_t类型
+    qRegisterMetaType<cRGB_t>("cRGB_t");//注册cRGB_t类型
+    qRegisterMetaType<FUNCSTATUS_t>("FUNCSTATUS_t");//注册FUNCSTATUS_t类型
 
     connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
@@ -24,9 +29,10 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     {
         this->close();
     }
-
+    workerThread->setInterface(pDteInterface);
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
     connect(pDteInterface, SIGNAL(updateMsgSignal(LOGTEXTTYPE_t)), this, SLOT(actUpdateMsg(LOGTEXTTYPE_t)));
+    connect(workerThread, SIGNAL(signalSendFeeback(FUNCSTATUS_t,bool)), this, SLOT(actWorkFeeback(FUNCSTATUS_t,bool)));
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -38,7 +44,6 @@ DeltaEMainWindow::~DeltaEMainWindow()
     delete ui;
 }
 
-
 void DeltaEMainWindow::actConnect()
 {
     pBtnEnable(false);
@@ -48,15 +53,10 @@ void DeltaEMainWindow::actConnect()
         showTipsMsg();
         if(pDteInterface->dteConnect())
         {
-            strTips.append("connect success!\n");
             m_bisConnect = true;
-            ui->pBtn_Connect->setText("disConnect");
+            ui->pBtn_Connect->setText("DisConnect");
+            strTips.append("connect seccess !!\n");
             showTipsMsg(LOG_PASS);
-        }
-        else
-        {
-            strTips.append("connect failed!\n");
-            showTipsMsg(LOG_ERROR);
         }
     }
     else
@@ -72,57 +72,36 @@ void DeltaEMainWindow::actConnect()
 
 void DeltaEMainWindow::actRun()
 {
-    bool bResult = false;
     if(colorUi == NULL)
     {
         strTips.append("please open color window......\n");
         showTipsMsg(LOG_ERROR);
         return;
     }
+    pBtnEnable(false);
+    workerThread->setStatus(FUNC_RUN);
+    workerThread->start();
     strTips.append("Running......\n");
     showTipsMsg();
-    pBtnEnable(false);
-    bResult = pDteInterface->dteRun();
-    if(bResult)
-    {
-       strTips.append("result PASS!!!\n");
-       showTipsMsg(LOG_PASS);
-    }else
-    {
-       strTips.append("result FAIL!!!");
-       showTipsMsg(LOG_ERROR);
-    }
-    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::actCheck()
 {
-    bool bResult = false;
     if(colorUi == NULL)
     {
         strTips.append("please open color window......");
         showTipsMsg(LOG_ERROR);
         return;
     }
+    pBtnEnable(false);
+    workerThread->setStatus(FUNC_CHECK);
+    workerThread->start();
     strTips.append("Check......\n");
     showTipsMsg();
-    pBtnEnable(false);
-    bResult = pDteInterface->dteCheck();
-    if(bResult)
-    {
-       strTips.append("result PASS!!!");
-       showTipsMsg(LOG_PASS);
-    }else
-    {
-       strTips.append("result FAIL!!!");
-       showTipsMsg(LOG_ERROR);
-    }
-    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::actAdjust()
 {
-    pBtnEnable(false);
     if(ui->rBtn_measure->isChecked())
     {
         pDteInterface->setAdjType(ADJ_MEASURE);
@@ -131,18 +110,11 @@ void DeltaEMainWindow::actAdjust()
     {
         pDteInterface->setAdjType(ADJ_FILE);
     }
-    if(pDteInterface->dteAdjust())
-    {
-        strTips.append("adjust success!!!");
-        showTipsMsg(LOG_PASS);
-    }
-    else
-    {
-        strTips.append("adjust fail!!!");
-        showTipsMsg(LOG_ERROR);
-    }
-
-    pBtnEnable(true);
+    pBtnEnable(false);
+    workerThread->setStatus(FUNC_ADJUST);
+    workerThread->start();
+    strTips.append("adjust......\n");
+    showTipsMsg();
 }
 void DeltaEMainWindow::actOpenColor()
 {
@@ -180,6 +152,35 @@ void DeltaEMainWindow::actUpdateMsg(LOGTEXTTYPE_t logType)
 {
     strTips = pDteInterface->getBackupMsg();
     showTipsMsg(logType);
+}
+void DeltaEMainWindow::actWorkFeeback(FUNCSTATUS_t status, bool result)
+{
+    workerThread->quit();
+    workerThread->wait();
+    switch (status) {
+    case FUNC_CHECK:
+        strTips.append("check ");
+        break;
+    case FUNC_ADJUST:
+        strTips.append("adjust ");
+        break;
+    case FUNC_RUN:
+        strTips.append("run ");
+        break;
+    default:
+        break;
+    }
+    if(result)
+    {
+        strTips.append("success !!!\n");
+        showTipsMsg(LOG_PASS);
+    }
+    else
+    {
+        strTips.append("fail !!!\n");
+        showTipsMsg(LOG_ERROR);
+    }
+    pBtnEnable(true);
 }
 
 void DeltaEMainWindow::showTipsMsg(LOGTEXTTYPE_t logType)
