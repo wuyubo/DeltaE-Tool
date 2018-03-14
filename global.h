@@ -22,6 +22,11 @@
 #define NATIVE_PATH   "./Native_PL"
 #define NATIVE_SUFFIX   ".txt"
 #define DELTAE_DATA_PATH  "./DeltaE_data.txt"
+#define SETTING_PATH  "./setting.txt"
+
+#define I2C_SETTING  "I2C"
+#define CA210_SETTING  "CA210"
+#define DELTAE_SETTING  "DeltaE"
 
 #define EN_DEBUG 1
 #if EN_DEBUG
@@ -63,6 +68,14 @@ typedef enum FUNCSTATUS
     FUNC_RUN,
     FUNC_END,
 }FUNCSTATUS_t;
+enum COLOR
+{
+    COLOR_R,
+    COLOR_G,
+    COLOR_B,
+    COLOR_W,
+    COLOR_END,
+};
 
 typedef enum LOGTEXTTYPE
 {
@@ -75,6 +88,60 @@ typedef enum LOGTEXTTYPE
     LOG_END,
 }LOGTEXTTYPE_t;
 
+typedef struct
+{
+    long checkChannel;
+    int  checkSyncMode;
+    int  checkSpeed;
+    int  checkDelayms;
+    long adjustChannel;
+    int  adjustSyncMode;
+    int  adjustSpeed;
+    int  adjustDelayms;
+}CA210Setting_t;
+
+typedef struct
+{
+    QString series ;
+    int  patternLevel ;
+    int  nativeDataFmtType ;
+    int  gammaEntris ;
+    int  compressSize ;
+    int  colorMetrixSize ;
+    int  gamutType ;
+    int  compGmaType ;
+    int  gammaTrackType  ;
+    BYTE colorTempTrackTypeSet;
+    int  colorTempTrackType  ;
+    int  colorTemperature  ;
+    double  ctSx ;
+    double  ctSy ;
+    double  gammaPower  ;
+    BYTE  darkModifySet  ;
+    BYTE  darkModifyEnable;
+    int   darkModifyMode;
+    int   darkModifyLevel;
+    BYTE  brightModifySet;
+    BYTE  brightModifyEnable;
+    int   brightModifyMode;
+    int   brightModifyLevel;
+    float maxBrightnessRatio;
+    BYTE  targetGamutSet;
+    double targetGamutRx;
+    double targetGamutRy;
+    double targetGamutGx;
+    double targetGamutGy;
+    double targetGamutBx;
+    double targetGamutBy;
+    double targetGamutWx;
+    double targetGamutWy;
+}DeltaESetting_t;
+
+typedef enum ADJUSTTYPE
+{
+   ADJ_MEASURE,
+   ADJ_FILE,
+}AdjustType_t;
 
 //**********************************
 //global data end

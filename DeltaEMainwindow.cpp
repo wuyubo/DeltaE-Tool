@@ -24,6 +24,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     {
         this->close();
     }
+
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
     connect(pDteInterface, SIGNAL(updateMsgSignal(LOGTEXTTYPE_t)), this, SLOT(actUpdateMsg(LOGTEXTTYPE_t)));
 }
@@ -122,6 +123,14 @@ void DeltaEMainWindow::actCheck()
 void DeltaEMainWindow::actAdjust()
 {
     pBtnEnable(false);
+    if(ui->rBtn_measure->isChecked())
+    {
+        pDteInterface->setAdjType(ADJ_MEASURE);
+    }
+    else if(ui->rBtn_file->isChecked())
+    {
+        pDteInterface->setAdjType(ADJ_FILE);
+    }
     if(pDteInterface->dteAdjust())
     {
         strTips.append("adjust success!!!");

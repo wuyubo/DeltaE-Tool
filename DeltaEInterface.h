@@ -32,6 +32,8 @@ public:
     void showMsg(QString msg, LOGTEXTTYPE_t logType = LOG_NORMAL);
     bool isStatus(FUNCSTATUS_t status);
     void setStatus(FUNCSTATUS_t status);
+    void setAdjType(AdjustType_t adjtype);
+    bool isAdjType(AdjustType_t adjtype);
     //I2C
     bool connectI2C();
     BurnSetting_T * readI2CSetting();
@@ -70,6 +72,7 @@ private:
     FUNCSTATUS_t func_status;
     int m_delayTimeMs;
     bool m_isConnect;
+    AdjustType_t m_adjType;
     //I2C
     Isp_I2C *i2cdevice;
     BurnSetting_T *m_pBurnsettings;

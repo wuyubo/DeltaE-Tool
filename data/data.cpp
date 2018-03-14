@@ -244,7 +244,13 @@ Data::Data(QObject *parent) : QObject(parent)
    int i;
    init_PatRgbList();
    m_pBurnsettings = new BurnSetting_T();
-   pat_Level = PATTERN_LEVEL;
+   ca210Setting = new CA210Setting_t();
+   deltaEStting = new DeltaESetting_t();
+
+   if(loadDeltaESetting() == false)
+   {
+       pat_Level = PATTERN_LEVEL;
+   }
    for(i = 0; i < 4*5*pat_Level; i++)
    {
        m_Native_RGBW[i] = default_Native_RGB_XYZxy[i];
@@ -521,7 +527,7 @@ void Data::getPanelNativeData(double * panelNativeData)
     }
 }
 bool Data::setPanelNativeData(int rgbw, int index, double dX, double dY,
-                        double dZ, double d_y, double d_x)
+                        double dZ, double d_x, double d_y)
 {
     int i;
     i = rgbw*5*pat_Level;
@@ -757,6 +763,54 @@ bool Data::saveDeltaEData()
     return saveFile(path, data);
 }
 
+bool Data::loadSetting(QString settingName)
+{
+    QString data, path, split;
+    int i;
+    QStringList dataList, tempList;
+    path.sprintf(SETTING_PATH);
+    data = readFile(path);
+    split.sprintf("[%s START]", settingName.toLatin1().data());
+    dataList = data.split(split);
+
+    if(dataList.length()>1)
+    {
+        split.sprintf("[%s END]", settingName.toLatin1().data());
+        dataList = dataList[1].split(split);
+        if(dataList.length() > 0)
+        {
+            dataList = dataList[0].split("\n", QString::SkipEmptyParts);
+
+            for(i = 0;i < dataList.length(); i++)
+            {
+                dataList[i].replace(" ", "");
+                tempList = dataList[i].split("=", QString::SkipEmptyParts);
+                if(tempList.length() > 1)
+                {
+                    setSetting(settingName, tempList[0], tempList[1]);
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+void Data::setSetting(QString settingName, QString name, QString value)
+{
+    if(settingName == I2C_SETTING)
+    {
+        setBurnSetting(name, value);
+    }
+    else if(settingName == CA210_SETTING)
+    {
+        setCA210Setting(name, value);
+    }
+    else if(settingName == DELTAE_SETTING)
+    {
+        setDeltaESetting(name, value);
+    }
+}
+
 void Data::setBurnSetting(QString name, QString value)
 {
     bool ok;
@@ -789,33 +843,7 @@ void Data::setBurnSetting(QString name, QString value)
 
 bool Data::loadBurnSetting()
 {
-    QString data, path;
-    int i;
-    QStringList dataList, tempList;
-    path.sprintf("setting.txt");
-    data = readFile(path);
-    dataList = data.split("[I2C START]");
-
-    if(dataList.length()>1)
-    {
-        dataList = dataList[1].split("[I2C END]");
-        if(dataList.length() > 0)
-        {
-            dataList = dataList[0].split("\n", QString::SkipEmptyParts);
-
-            for(i = 0;i < dataList.length(); i++)
-            {
-                dataList[i].replace(" ", "");
-                tempList = dataList[i].split("=", QString::SkipEmptyParts);
-                if(tempList.length() > 1)
-                {
-                    setBurnSetting(tempList[0], tempList[1]);
-                }
-            }
-            return true;
-        }
-    }
-    return false;
+    return loadSetting(I2C_SETTING);
 }
 
 BurnSetting_T *Data::defaultI2CSetting()
@@ -852,4 +880,190 @@ BurnSetting_T * Data::getBurnSetting()
         return defaultI2CSetting();
     }
     return m_pBurnsettings;
+}
+
+bool Data::loadCA210Setting()
+{
+    return loadSetting(CA210_SETTING);
+}
+
+
+
+void Data::setCA210Setting(QString name, QString value)
+{
+    if(name == "Check_Channel")
+    {
+        ca210Setting->checkChannel = value.toInt();
+    }
+    else if(name == "Check_SyncMode")
+    {
+        ca210Setting->checkSyncMode = value.toInt();
+    }
+    else if(name == "Check_Speed")
+    {
+        ca210Setting->checkSpeed = value.toInt();
+    }
+    else if(name == "Check_Delayms")
+    {
+        ca210Setting->checkDelayms = value.toInt();
+    }
+    else if(name == "Adjsut_Channel")
+    {
+        ca210Setting->adjustChannel = value.toInt();
+    }
+    else if(name == "Adjsut_SyncMode")
+    {
+        ca210Setting->adjustSyncMode = value.toInt();
+    }
+    else if(name == "Adjsut_Speed")
+    {
+        ca210Setting->adjustSpeed = value.toInt();
+    }
+    else if(name == "Adjsut_Delayms")
+    {
+        ca210Setting->adjustDelayms = value.toInt();
+    }
+}
+bool Data::loadDeltaESetting()
+{
+    return loadSetting(DELTAE_SETTING);
+}
+
+void Data::setDeltaESetting(QString name, QString value)
+{
+    if(name == "Series")
+    {
+        deltaEStting->series = value;
+    }
+    else if(name == "Pattern_Level")
+    {
+        deltaEStting->patternLevel = value.toInt();
+        pat_Level = deltaEStting->patternLevel;
+    }
+    else if(name == "NativeDataFmtType")
+    {
+        deltaEStting->nativeDataFmtType = value.toInt();
+    }
+    else if(name == "GammaEntris")
+    {
+        deltaEStting->gammaEntris = value.toInt();
+    }
+    else if(name == "CompressSize")
+    {
+        deltaEStting->compressSize = value.toInt();
+    }
+    else if(name == "ColorMetrixSize")
+    {
+        deltaEStting->colorMetrixSize = value.toInt();
+    }
+    else if(name == "GamutType")
+    {
+        deltaEStting->gamutType = value.toInt();
+    }
+    else if(name == "CompGmaType")
+    {
+        deltaEStting->compGmaType = value.toInt();
+    }
+    else if(name == "GammaTrackType")
+    {
+        deltaEStting->gammaTrackType = value.toInt();
+    }
+    else if(name == "ColorTempTrackTypeSet")
+    {
+        deltaEStting->colorTempTrackTypeSet = value.toInt();
+    }
+    else if(name == "ColorTempTrackType")
+    {
+        deltaEStting->colorTempTrackType = value.toInt();
+    }
+    else if(name == "ColorTemperature")
+    {
+        deltaEStting->colorTemperature = value.toInt();
+    }
+    else if(name == "CT-sx")
+    {
+        deltaEStting->ctSx = value.toDouble();
+    }
+    else if(name == "CT-sy")
+    {
+        deltaEStting->ctSy = value.toDouble();
+    }
+    else if(name == "gammaPower")
+    {
+        deltaEStting->gammaPower = value.toDouble();
+    }
+    else if(name == "DarkModifySet")
+    {
+        deltaEStting->darkModifySet = value.toInt();
+    }
+    else if(name == "DarkModifyEnable")
+    {
+        deltaEStting->darkModifyEnable = value.toInt();
+    }
+    else if(name == "DarkModifyMode")
+    {
+        deltaEStting->darkModifyMode = value.toInt();
+    }
+    else if(name == "DarkModifyLevel")
+    {
+        deltaEStting->darkModifyLevel = value.toInt();
+    }
+
+    else if(name == "BrightModifySet")
+    {
+        deltaEStting->brightModifySet = value.toInt();
+    }
+    else if(name == "BrightModifyEnable")
+    {
+        deltaEStting->brightModifyEnable = value.toInt();
+    }
+    else if(name == "BrightModifyMode")
+    {
+        deltaEStting->brightModifyMode = value.toInt();
+    }
+    else if(name == "BrightModifyLevel")
+    {
+        deltaEStting->brightModifyLevel = value.toInt();
+    }
+    else if(name == "MaxBrightnessRatio")
+    {
+        deltaEStting->maxBrightnessRatio = value.toFloat();
+    }
+    else if(name == "TargetGamutSet")
+    {
+        deltaEStting->targetGamutSet = value.toInt();
+    }
+    else if(name == "TargetGamut-Rx")
+    {
+        deltaEStting->targetGamutRx = value.toDouble();
+    }
+    else if(name == "TargetGamut-Ry")
+    {
+        deltaEStting->targetGamutRy = value.toDouble();
+    }
+    else if(name == "TargetGamut-Gx")
+    {
+        deltaEStting->targetGamutGx = value.toDouble();
+    }
+    else if(name == "TargetGamut-Gy")
+    {
+        deltaEStting->targetGamutGy = value.toDouble();
+    }
+    else if(name == "TargetGamut-Bx")
+    {
+        deltaEStting->targetGamutBx = value.toDouble();
+    }
+    else if(name == "TargetGamut-By")
+    {
+        deltaEStting->targetGamutBy = value.toDouble();
+    }
+    else if(name == "TargetGamut-Wx")
+    {
+        deltaEStting->targetGamutWx = value.toDouble();
+    }
+    else if(name == "TargetGamut-Wy")
+    {
+        deltaEStting->targetGamutWy = value.toDouble();
+    }
+
 }

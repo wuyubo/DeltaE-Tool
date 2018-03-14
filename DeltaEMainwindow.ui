@@ -31,7 +31,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>180</y>
+      <y>200</y>
       <width>141</width>
       <height>61</height>
      </rect>
@@ -166,6 +166,41 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QRadioButton" name="rBtn_measure">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>160</y>
+      <width>81</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::StrongFocus</enum>
+    </property>
+    <property name="text">
+     <string>Measure</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="rBtn_file">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>160</y>
+      <width>81</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>File</string>
+    </property>
    </widget>
    <widget class="QWidget" name="">
     <property name="geometry">

@@ -24,14 +24,20 @@ public:
     BYTE *getColorMatrix();
     void getPanelNativeData(double * panelNativeData);
     bool setPanelNativeData(int rgbw, int index, double dX, double dY,
-                            double dZ, double d_y, double d_x);
+                            double dZ, double d_x, double d_y);
     bool savePanelNativeData();
     bool loadPanelNativeData();
     bool saveDeltaEData();
+    bool loadSetting(QString settingName);
+    void setSetting(QString settingName, QString name, QString value);
     void setBurnSetting(QString name, QString value);
     bool loadBurnSetting();
     BurnSetting_T *defaultI2CSetting();
     BurnSetting_T *getBurnSetting();
+    bool loadCA210Setting();
+    void setCA210Setting(QString name, QString value);
+    bool loadDeltaESetting();
+    void setDeltaESetting(QString name, QString value);
 signals:
 
 public slots:
@@ -43,6 +49,8 @@ public:
     int pat_RgbCount;
     int pat_Level;
     BurnSetting_T *m_pBurnsettings;
+    CA210Setting_t *ca210Setting;
+    DeltaESetting_t *deltaEStting;
 };
 
 #endif // DATA_H

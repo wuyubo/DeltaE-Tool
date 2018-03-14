@@ -4,8 +4,8 @@ namespace ddc {
 
 #define     FEEDBACK_LEN         9
 #define     RETRY_CNT            3
-#define     COMMON_DELAY         800
-#define     LASTPACK_DELAY       1600
+#define     COMMON_DELAY         300
+#define     LASTPACK_DELAY       600
 
 
 //example

@@ -11,3 +11,56 @@ Burn_HdcplastDelay = 600
 Burn_eraseHdcpkeyDelay = 444
 Burn_isCreatlogs  = 0
 [I2C END]
+
+[CA210 START]
+Check_Channel = 0
+Check_SyncMode = 0
+Check_Speed = 1
+Check_Delayms = 200
+Adjsut_Channel = 1
+Adjsut_SyncMode = 0
+Adjsut_Speed = 1
+Adjsut_Delayms = 500
+[CA210 END]
+
+[DeltaE START]
+//MST9U, TSUM
+Series = TSUM
+Pattern_Level = 9
+NativeDataFmtType = 0
+GammaEntris = 256
+CompressSize = 64
+ColorMetrixSize = 18
+GamutType = 1
+CompGmaType = 0
+// 0:N/A, 1:User_define, 2:DICOM
+GammaTrackType = 1
+<-----ColorTemp------>
+ColorTempTrackTypeSet = 1
+//0:N/A., 1:Panel native, 2:User_define
+ColorTempTrackType = 1
+ColorTemperature = 6500
+CT-sx = 0.3127
+CT-sy = 0.329
+gammaPower = 2.2
+<-----DarkModify------>
+DarkModifySet = 1
+DarkModifyEnable = 1
+DarkModifyMode  = 1
+DarkModifyLevel = 32
+<-----BrightModify------>
+BrightModifySet = 0
+BrightModifyMode = 0
+BrightModifyLevel = 255
+MaxBrightnessRatio = 1
+<-----TargetGamut------>
+TargetGamutSet = 0
+TargetGamut-Rx = 0.64
+TargetGamut-Ry = 0.33
+TargetGamut-Gx = 0.3
+TargetGamut-Gy = 0.6
+TargetGamut-Bx = 0.15
+TargetGamut-Bx = 0.06
+TargetGamut-Wx = 0.3127
+TargetGamut-Wy = 0.329
+[DeltaE END]
