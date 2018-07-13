@@ -21,6 +21,7 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     m_isConnect = false;
     m_bI2cConnect = false;
     m_bCa210Connect = false;
+    m_standard = CIE94_RESULT;
     if(!pCa210 || !pMstGenGma || !i2cdevice ||!m_pdata || !m_pDDCprotocol)
     {
         exit(-1);
@@ -55,6 +56,11 @@ DeltaEInterface::~DeltaEInterface()
 void DeltaEInterface::setConnectFlag(bool bcnt)
 {
     m_isConnect = bcnt;
+}
+
+void DeltaEInterface::setstandardResult(float value)
+{
+    m_standard = value;
 }
 
 bool DeltaEInterface::IsConnectCA210()
@@ -372,7 +378,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
         sRGBResult = sRGBResult/m_pdata->pat_RgbCount;
     }
     temp.sprintf("结果为 %lf", sRGBResult);
-    if(sRGBResult < CIE94_RESULT)
+    if(sRGBResult < m_standard)
     {
         showMsg(temp, LOG_PASS);
         return true;

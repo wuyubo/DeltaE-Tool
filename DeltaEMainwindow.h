@@ -28,6 +28,8 @@ private slots:
     void actUpdateMsg(LOGTEXTTYPE_t logType);
     void actWorkFeeback(FUNCSTATUS_t status, bool result);
     void on_pBtn_Check_clicked();
+    void keyPressEvent(QKeyEvent *e);
+    int  getQTkey(QString strKey);
 
 private:
     void showTipsMsg(LOGTEXTTYPE_t logType = LOG_NORMAL);

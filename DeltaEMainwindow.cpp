@@ -2,6 +2,7 @@
 #include "ui_DeltaEMainwindow.h"
 #include <QMessageBox>
 #include <QMetaType>
+#include <QKeyEvent>
 
 DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,6 +31,7 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
         this->close();
     }
     workerThread->setInterface(pDteInterface);
+    pDteInterface->setstandardResult(ui->lb_result_value->text().toFloat());
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
     connect(pDteInterface, SIGNAL(updateMsgSignal(LOGTEXTTYPE_t)), this, SLOT(actUpdateMsg(LOGTEXTTYPE_t)));
     connect(workerThread, SIGNAL(signalSendFeeback(FUNCSTATUS_t,bool)), this, SLOT(actWorkFeeback(FUNCSTATUS_t,bool)));
@@ -77,6 +79,7 @@ void DeltaEMainWindow::actRun()
          }
      }
     pBtnEnable(false);
+    pDteInterface->setstandardResult(ui->lb_result_value->text().toFloat());
     workerThread->setStatus(FUNC_RUN);
     workerThread->start();
     strTips.append("运行中......\n");
@@ -102,6 +105,7 @@ void DeltaEMainWindow::actCheck()
 
     }
     pBtnEnable(false);
+    pDteInterface->setstandardResult(ui->lb_result_value->text().toFloat());
     workerThread->setStatus(FUNC_CHECK);
     workerThread->start();
     strTips.append("DeltaE 检测中......\n");
@@ -138,6 +142,12 @@ void DeltaEMainWindow::actAdjust()
 }
 void DeltaEMainWindow::actOpenColor()
 {
+    if(colorUi)
+    {
+        colorUi->close();
+        delete colorUi;
+        colorUi = NULL;
+    }
     colorUi = new ColorWindow(this);
     if(colorUi)
     {
@@ -197,7 +207,7 @@ void DeltaEMainWindow::actWorkFeeback(FUNCSTATUS_t status, bool result)
     }
     else
     {
-        strTips.append("失败 !!!\n");
+        strTips.append("失败 NG !!!\n");
         showTipsMsg(LOG_ERROR);
     }
     pBtnEnable(true);
@@ -211,6 +221,9 @@ void DeltaEMainWindow::showTipsMsg(LOGTEXTTYPE_t logType)
         case LOG_NONE:
             return;
         case LOG_NORMAL:
+#if !EN_SHOW_DEBUG_MESSAGE
+            return;
+#endif
             logColor = Qt::black;
             break;
         case LOG_PASS:
@@ -246,3 +259,41 @@ void DeltaEMainWindow::on_pBtn_Check_clicked()
 {
 
 }
+
+void DeltaEMainWindow::keyPressEvent(QKeyEvent *e)
+{
+    int key = e->key();
+    if(key == Qt::Key_C)
+    {
+        if(!colorUi)
+        {
+            actOpenColor();
+        }
+        else
+        {
+            actCheck();
+        }
+    }else if(key == Qt::Key_A)
+    {
+        actAdjust();
+    }
+    else if(key == Qt::Key_R)
+    {
+        if(!colorUi)
+        {
+            actOpenColor();
+        }
+        else
+        {
+            actRun();
+        }
+    }
+    qDebug()<<key;
+}
+
+int DeltaEMainWindow::getQTkey(QString strKey)
+{
+    //QByteArray byte = strKey.at(0).toAscii();
+    return Qt::Key_Space;
+}
+

@@ -34,6 +34,7 @@
 #else
 #define DEBUGMSG(fmt, args...)
 #endif
+#define EN_SHOW_DEBUG_MESSAGE  0
 /**********************************
 *** global define end
 **********************************/

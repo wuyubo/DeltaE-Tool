@@ -25,6 +25,7 @@ public:
     bool connectCa210();
     void dteDisConnect();
     void setConnectFlag(bool bcnt);
+    void setstandardResult(float value);
     int dteRun();
     int dteCheck();
     bool dteAdjust();
@@ -92,6 +93,7 @@ private:
     //DeltaE lib
     //data
     Data *m_pdata;
+    float m_standard;
 };
 
 #endif // DELTAEINTERFACE_H
