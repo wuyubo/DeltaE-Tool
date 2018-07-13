@@ -19,6 +19,8 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     pMstGenGma = new MstGenGmaCtr();
     m_pDDCprotocol = new DDCProtocol_T(*i2cdevice);
     m_isConnect = false;
+    m_bI2cConnect = false;
+    m_bCa210Connect = false;
     if(!pCa210 || !pMstGenGma || !i2cdevice ||!m_pdata || !m_pDDCprotocol)
     {
         exit(-1);
@@ -50,6 +52,15 @@ DeltaEInterface::~DeltaEInterface()
     delete m_transfer;
     delete m_pdata;
 }
+void DeltaEInterface::setConnectFlag(bool bcnt)
+{
+    m_isConnect = bcnt;
+}
+
+bool DeltaEInterface::IsConnectCA210()
+{
+    return m_bCa210Connect;
+}
 
 bool DeltaEInterface::dteConnect()
 {
@@ -73,20 +84,22 @@ bool DeltaEInterface::connectCa210()
 
         pCa210->caGetCATypeName(b1CAType);
         pCa210->caGetCAVersionName(b1CAVersion);
-        temp.sprintf("Connect %s, Version: %s", b1CAType, b1CAVersion);
+        temp.sprintf("已连接 %s, 版本: %s", b1CAType, b1CAVersion);
         showMsg(temp, LOG_PASS);
-
-        return true;
+        m_bCa210Connect = true;
+    }else
+    {
+        m_bCa210Connect = false;
+        showMsg("连接色温仪（ca210）失败!!!", LOG_ERROR);
     }
-    showMsg("ca210 connect Fail !!!", LOG_ERROR);
-    return false;
+    return m_bCa210Connect;
 }
 
 void DeltaEInterface::dteDisConnect()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...", LOG_ERROR);
+        showMsg("请连接串口或色温仪...", LOG_ERROR);
         return;
     }
     if(i2cdevice->gethandle())
@@ -104,7 +117,7 @@ int DeltaEInterface::dteRun()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...", LOG_ERROR);
+        showMsg("请连接串口或色温仪...", LOG_ERROR);
         return m_isConnect;
     }
     //step1. Verify
@@ -112,20 +125,20 @@ int DeltaEInterface::dteRun()
     {
         return true;
     }
-    delayMs(300);
+    //delayMs(300);
     //step2. if Verify failed, run to adjust.
     setAdjType(ADJ_MEASURE);
-    dteAdjust();
-    delayMs(300);
+    return dteAdjust();
+    //delayMs(300);
     //step3. Verify again
-    return dteCheck();
+    //return dteCheck();
 }
 
 int DeltaEInterface::dteCheck()
 {
     if(!m_isConnect)
     {
-        showMsg("pls connect...", LOG_ERROR);
+        showMsg("请连接串口或色温仪...", LOG_ERROR);
         return m_isConnect;
     }
     setStatus(FUNC_CHECK);
@@ -140,7 +153,7 @@ bool DeltaEInterface::dteAdjust()
     bool result = false;
     if(!m_isConnect)
     {
-        showMsg("pls connect...", LOG_ERROR);
+        showMsg("请连接串口或色温仪...", LOG_ERROR);
         return m_isConnect;
     }
     //run to adjust
@@ -165,7 +178,7 @@ void DeltaEInterface::dteTest(int r, int g, int b)
     cRGB_t testPat = {r, g, b};
     if(!m_isConnect)
     {
-        showMsg("pls connect...", LOG_ERROR);
+        showMsg("请连接串口或色温仪...", LOG_ERROR);
         return;
     }
     setStatus(FUNC_RUN);
@@ -184,6 +197,10 @@ void DeltaEInterface::dteTest(int r, int g, int b)
     cmdSend(&exitDeltaEDebugcmd);
     cmdSend(&exitDeltaEAutoGammacmd);
 }
+bool DeltaEInterface::IsConnectI2C()
+{
+    return m_bI2cConnect;
+}
 
 bool DeltaEInterface::connectI2C()
 {
@@ -195,13 +212,15 @@ bool DeltaEInterface::connectI2C()
     DEBUGMSG("the i2c speed:%d",m_pBurnsettings->getI2cSpeed());
     if (i2cdevice->openDevice(i2cdevice->gethandle(),m_pBurnsettings->getI2cSpeed()*1000.0f) == FTC_SUCCESS)
     {
-        return true;
+        showMsg("连接串口成功!! ", LOG_PASS);
+        m_bI2cConnect = true;
     }
     else
     {
-        showMsg("[I2C] connect I2C fail!! ", LOG_ERROR);
-        return false;
+        showMsg("连接串口失败!! ", LOG_ERROR);
+        m_bI2cConnect = false;
     }
+    return m_bI2cConnect;
 }
 
 QString DeltaEInterface::getBackupMsg()
@@ -265,12 +284,12 @@ bool DeltaEInterface::sRGB_DeltaEVerify()
 
     if(!pCa210 || !pCa210->isConnect())
     {
-       showMsg("please connect Ca210...", LOG_ERROR);
+       showMsg("请连接色温仪...", LOG_ERROR);
        return false;
     }
     sRGB_DeltaEVerifyStep0(); //0. load pattern
     sRGB_DeltaEVerifyStep1(); //1. get 100% wihte Y
-    showMsg("measure gamma....");
+    showMsg("测量中....");
     sRGB_DeltaEVerifyStep2(); //2. measure gamma data
     return sRGB_DeltaEVerifyStep3(); //3. check the result
 }
@@ -286,7 +305,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep0()
         m_delayTimeMs = m_pdata->ca210Setting->adjustDelayms;;
     }
     m_pdata->update_PatRgb(isStatus(FUNC_CHECK)); //load pattern file
-    temp.sprintf("Pattern Count: %d", m_pdata->pat_RgbCount);
+    temp.sprintf("测试Pattern阶数: %d", m_pdata->pat_RgbCount);
     showMsg(temp);
     return true;
 }
@@ -295,15 +314,15 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep1()
 {
     //XYZCOLOR color={0,0,0};
     LPCA210DATASTRUCT pca210;
-    QString temp;
+    //QString temp;
     sendPattern(pat_RGBW[3]);//SEND 100% White pattern
     delayMs(m_delayTimeMs);//延时ms
    // color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
     pca210 = pCa210->caMeasure();
     m_d100W_Raw_Y = pca210->fY;
 
-    temp.sprintf("100 White Y : %lf", m_d100W_Raw_Y);
-    showMsg(temp);
+    //temp.sprintf("100 White Y : %lf", m_d100W_Raw_Y);
+    //showMsg(temp);
     return true;
 }
 
@@ -311,7 +330,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
 {
     //XYZCOLOR color={0,0,0};
     LPCA210DATASTRUCT pca210;
-    QString temp;
+    //QString temp;
     int pattern_index=0;
     float result;
 
@@ -319,31 +338,18 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
     {
         sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
         delayMs(m_delayTimeMs);//延时ms
-        //color = pCa210->caGetAverageMeasureXYZ(3);//获取CA210 的XYZ值
-       // color = testXYZ[pattern_index];
         pca210 = pCa210->caMeasure();
-        delayMs(40);//延时ms
-        //pca210->fX = color.fX;
-        //pca210->fY = color.fY;
-        //pca210->fZ = color.fZ;
         if(isStatus(FUNC_CHECK))
         {
             result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
             sRGBResult += result;
-            temp.sprintf("%d : %lf", pattern_index+1,result);
-            showMsg(temp);
+          //  temp.sprintf("%d : %lf", pattern_index+1,result);
+          //  showMsg(temp);
         }
         else
         {
             m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level), pattern_index%m_pdata->pat_Level,
                                     pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
-            temp.sprintf("%d,%d(%d, %d, %d): %.16lf",  pattern_index/(m_pdata->pat_Level),
-                          pattern_index%m_pdata->pat_Level,
-                         m_pdata->pat_RgbList[pattern_index].red,
-                         m_pdata->pat_RgbList[pattern_index].green,
-                         m_pdata->pat_RgbList[pattern_index].blue,
-                         pca210->fX);
-            showMsg(temp);
         }
     }
 
@@ -365,7 +371,7 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
     {
         sRGBResult = sRGBResult/m_pdata->pat_RgbCount;
     }
-    temp.sprintf("result is %lf", sRGBResult);
+    temp.sprintf("结果为 %lf", sRGBResult);
     if(sRGBResult < CIE94_RESULT)
     {
         showMsg(temp, LOG_PASS);
@@ -379,9 +385,9 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
 bool DeltaEInterface::sRGB_DeltaEAdjust()
 {
     sRGB_DeltaEAdjustStep0();//load native data
-    showMsg("generate gamma....");
+    showMsg("生成gamma数据....");
     sRGB_DeltaEAdjustStep1();// generate gamma
-    showMsg("writing gamma....");
+    showMsg("写入gamma数据到Monitor....");
     return sRGB_DeltaEAdjustStep2();//send gamma to monitor
 }
 bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
@@ -532,7 +538,7 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
 {
     if (!i2cdevice->gethandle())
     {
-        showMsg("pleas open device first!!", LOG_ERROR);
+        showMsg("请先连接设备!!", LOG_ERROR);
         return false;
     }
 
@@ -543,25 +549,25 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
     {
         if(x.length()>2)
         {
-            showMsg("Commands format error.", LOG_ERROR);
+            showMsg("命令格式错误.", LOG_ERROR);
             return false;
         }
     }
     if(cmdlist.size()>40)
     {
-        showMsg("you may send too much.", LOG_ERROR);
+        showMsg("发送内容过长.", LOG_ERROR);
         return false;
     }
     if(cmdlist.size()==0)
     {
-        showMsg("Just type something,man~", LOG_ERROR);
+        showMsg("发送的内容不能为空", LOG_ERROR);
         return false;
     }
 
     quint8* ins = new quint8[cmdlist.size()];
     bool ok;
     showMsg("\n");
-    showMsg("User defined Instrucitons:");
+    showMsg("自定义命令:");
     QString _usrstr;
     for (int i = 0; i < cmdlist.size(); ++i)
     {
@@ -634,7 +640,7 @@ bool DeltaEInterface::sRGB_DeltaERun()
 {
     if(!pCa210 || !pCa210->isConnect())
     {
-       showMsg("please connect Ca210 or I2c device...", LOG_ERROR);
+       showMsg("请连接串口或色温仪...", LOG_ERROR);
        return false;
     }
     sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
@@ -652,7 +658,7 @@ bool DeltaEInterface::sRGB_DeltaERunstep0()
         delayMs(300);
         return sRGB_DeltaEVerifyStep0();
     }
-    showMsg("DeltaE Debug FAIL！！", LOG_ERROR);
+    showMsg("串口发失败，请检查串连接重试！！", LOG_ERROR);
     return false;
 }
 

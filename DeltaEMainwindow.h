@@ -27,6 +27,8 @@ private slots:
     void actSendPat(cRGB_t rgb);
     void actUpdateMsg(LOGTEXTTYPE_t logType);
     void actWorkFeeback(FUNCSTATUS_t status, bool result);
+    void on_pBtn_Check_clicked();
+
 private:
     void showTipsMsg(LOGTEXTTYPE_t logType = LOG_NORMAL);
     void pBtnEnable(bool bEnable);

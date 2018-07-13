@@ -24,6 +24,7 @@ public:
     bool dteConnect();
     bool connectCa210();
     void dteDisConnect();
+    void setConnectFlag(bool bcnt);
     int dteRun();
     int dteCheck();
     bool dteAdjust();
@@ -36,6 +37,7 @@ public:
     bool isAdjType(AdjustType_t adjtype);
     //I2C
     bool connectI2C();
+    bool IsConnectI2C();
     BurnSetting_T * readI2CSetting();
     //ddc
     bool cmdSend(QString CmdStr);
@@ -48,6 +50,7 @@ public:
     bool sRGB_DeltaERunstep3();
     bool sRGB_DeltaERunstep4();
     //ca210
+    bool IsConnectCA210();
     void sendPattern(cRGB_t rgb);
     void delayMs(unsigned int msec);
     bool sRGB_DeltaEVerify();
@@ -77,12 +80,14 @@ private:
     Isp_I2C *i2cdevice;
     BurnSetting_T *m_pBurnsettings;
     DDCProtocol_T *m_pDDCprotocol;
+    bool m_bI2cConnect;
 
     //Transfer layer
     Transfer_T *m_transfer=nullptr;
     //ca210
     double sRGBResult;
     double m_d100W_Raw_Y;
+    bool m_bCa210Connect;
 
     //DeltaE lib
     //data

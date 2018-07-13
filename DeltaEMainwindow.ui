@@ -6,246 +6,208 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>889</width>
-    <height>519</height>
+    <width>863</width>
+    <height>523</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>DeltaEMainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="pBtn_Connect">
+   <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>70</x>
       <y>80</y>
-      <width>141</width>
-      <height>61</height>
+      <width>359</width>
+      <height>131</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Connect</string>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
+    <property name="title">
+     <string>检测</string>
+    </property>
+    <widget class="QPushButton" name="pBtn_Color">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>50</y>
+       <width>141</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>颜色窗口</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pBtn_Check">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>141</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>检测</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="pBtn_Adjust">
+   <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>200</y>
-      <width>141</width>
-      <height>61</height>
+      <x>70</x>
+      <y>210</y>
+      <width>359</width>
+      <height>171</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Adjust</string>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
+    <property name="title">
+     <string>调节</string>
+    </property>
+    <widget class="QRadioButton" name="rBtn_file">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>40</y>
+       <width>81</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>文件调节</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rBtn_measure">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>81</width>
+       <height>19</height>
+      </rect>
+     </property>
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::StrongFocus</enum>
+     </property>
+     <property name="text">
+      <string>测量调节</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pBtn_Adjust">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>141</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>调节</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pBtn_Run">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>80</y>
+       <width>141</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>运行</string>
+     </property>
+    </widget>
+    <zorder>rBtn_file</zorder>
+    <zorder>rBtn_measure</zorder>
+    <zorder>pBtn_Adjust</zorder>
+    <zorder>pBtn_Run</zorder>
+    <zorder>groupBox</zorder>
    </widget>
-   <widget class="QPushButton" name="pBtn_Check">
+   <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>430</x>
       <y>80</y>
-      <width>141</width>
-      <height>61</height>
+      <width>369</width>
+      <height>301</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">font: 75 9pt &quot;ADMUI3Lg&quot;;</string>
+    </property>
+    <property name="title">
+     <string>信息框</string>
+    </property>
+    <widget class="QTextBrowser" name="logtextBrowser">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>369</width>
+       <height>287</height>
+      </rect>
+     </property>
+    </widget>
+    <zorder>logtextBrowser</zorder>
+    <zorder>label</zorder>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>861</width>
+      <height>481</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/new/prefix1/cvte.jpg);</string>
     </property>
     <property name="text">
-     <string>Check</string>
+     <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pBtn_Run">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>290</y>
-      <width>141</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Run</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_massage">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>70</y>
-      <width>72</width>
-      <height>15</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Massage</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pBtn_Color">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>170</y>
-      <width>141</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Color win</string>
-    </property>
-   </widget>
-   <widget class="QTextBrowser" name="logtextBrowser">
-    <property name="geometry">
-     <rect>
-      <x>410</x>
-      <y>100</y>
-      <width>411</width>
-      <height>271</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pBtn_Test">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>400</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Test</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>400</y>
-      <width>63</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLabel" name="lb_G">
-       <property name="text">
-        <string>G</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="txt_G">
-       <property name="text">
-        <string>255</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="layoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>430</y>
-      <width>63</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="lb_B">
-       <property name="text">
-        <string>B</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="txt_B">
-       <property name="text">
-        <string>255</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QRadioButton" name="rBtn_measure">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>160</y>
-      <width>81</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="mouseTracking">
-     <bool>true</bool>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::StrongFocus</enum>
-    </property>
-    <property name="text">
-     <string>Measure</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rBtn_file">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>160</y>
-      <width>81</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>File</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>370</y>
-      <width>63</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="lb_R">
-       <property name="text">
-        <string>R</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="txt_R">
-       <property name="text">
-        <string>255</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+   <zorder>label</zorder>
+   <zorder>groupBox</zorder>
+   <zorder>groupBox_2</zorder>
+   <zorder>groupBox_3</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>889</width>
+     <width>863</width>
      <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDeltaE_Tool_CVTE">
     <property name="title">
-     <string>setting</string>
+     <string>设置</string>
     </property>
+    <addaction name="actionSetting_ini"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
-     <string>help</string>
+     <string>帮助</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
@@ -263,7 +225,12 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionAbout">
    <property name="text">
-    <string>about</string>
+    <string>关于DeltaETool</string>
+   </property>
+  </action>
+  <action name="actionSetting_ini">
+   <property name="text">
+    <string>请打开setting.ini设置</string>
    </property>
   </action>
  </widget>

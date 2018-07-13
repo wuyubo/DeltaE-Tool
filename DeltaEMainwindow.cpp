@@ -15,12 +15,12 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     qRegisterMetaType<cRGB_t>("cRGB_t");//注册cRGB_t类型
     qRegisterMetaType<FUNCSTATUS_t>("FUNCSTATUS_t");//注册FUNCSTATUS_t类型
 
-    connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
+   // connect(ui->pBtn_Connect, SIGNAL(clicked()), this, SLOT(actConnect()));
     connect(ui->pBtn_Run, SIGNAL(clicked()), this, SLOT(actRun()));
     connect(ui->pBtn_Check, SIGNAL(clicked()), this, SLOT(actCheck()));
     connect(ui->pBtn_Adjust, SIGNAL(clicked()), this, SLOT(actAdjust()));
     connect(ui->pBtn_Color, SIGNAL(clicked()), this, SLOT(actOpenColor()));
-    connect(ui->pBtn_Test, SIGNAL(clicked()), this, SLOT(actTest()));
+   // connect(ui->pBtn_Test, SIGNAL(clicked()), this, SLOT(actTest()));
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(actAbout()));
 
@@ -47,26 +47,16 @@ DeltaEMainWindow::~DeltaEMainWindow()
 void DeltaEMainWindow::actConnect()
 {
     pBtnEnable(false);
-    if(m_bisConnect == false)
+
+    strTips.append("连接中....");
+    showTipsMsg();
+    if(pDteInterface->dteConnect())
     {
-        strTips.append("connect....");
-        showTipsMsg();
-        if(pDteInterface->dteConnect())
-        {
-            m_bisConnect = true;
-            ui->pBtn_Connect->setText("DisConnect");
-            strTips.append("connect seccess !!\n");
-            showTipsMsg(LOG_PASS);
-        }
-    }
-    else
-    {
-        pDteInterface->dteDisConnect();
-        m_bisConnect = false;
-        ui->pBtn_Connect->setText("Connect");
-        strTips.append("disConnect!\n");
+        m_bisConnect = true;
+        strTips.append("连接成功 !!\n");
         showTipsMsg(LOG_PASS);
     }
+
     pBtnEnable(true);
 }
 
@@ -74,14 +64,22 @@ void DeltaEMainWindow::actRun()
 {
     if(colorUi == NULL)
     {
-        strTips.append("please open color window......\n");
+        strTips.append("请打开颜色窗口......\n");
         showTipsMsg(LOG_ERROR);
         return;
     }
+     if(!pDteInterface->IsConnectI2C() || !pDteInterface->IsConnectCA210())
+     {
+         actConnect();
+         if(m_bisConnect == false)
+         {
+             return;
+         }
+     }
     pBtnEnable(false);
     workerThread->setStatus(FUNC_RUN);
     workerThread->start();
-    strTips.append("Running......\n");
+    strTips.append("运行中......\n");
     showTipsMsg();
 }
 
@@ -89,14 +87,24 @@ void DeltaEMainWindow::actCheck()
 {
     if(colorUi == NULL)
     {
-        strTips.append("please open color window......");
+        strTips.append("请打开颜色窗口......");
         showTipsMsg(LOG_ERROR);
         return;
+    }
+
+    if(!pDteInterface->IsConnectCA210())
+    {
+       if(!pDteInterface->connectCa210())
+       {
+           return;
+       }
+       pDteInterface->setConnectFlag(true);
+
     }
     pBtnEnable(false);
     workerThread->setStatus(FUNC_CHECK);
     workerThread->start();
-    strTips.append("Check......\n");
+    strTips.append("DeltaE 检测中......\n");
     showTipsMsg();
 }
 
@@ -105,15 +113,27 @@ void DeltaEMainWindow::actAdjust()
     if(ui->rBtn_measure->isChecked())
     {
         pDteInterface->setAdjType(ADJ_MEASURE);
+        if(!pDteInterface->dteConnect())
+        {
+            return;
+        }
     }
     else if(ui->rBtn_file->isChecked())
     {
         pDteInterface->setAdjType(ADJ_FILE);
+        if(!pDteInterface->IsConnectI2C())
+        {
+           if(!pDteInterface->connectI2C())
+           {
+               return;
+           }
+           pDteInterface->setConnectFlag(true);
+        }
     }
     pBtnEnable(false);
     workerThread->setStatus(FUNC_ADJUST);
     workerThread->start();
-    strTips.append("adjust......\n");
+    strTips.append("DeltaE 调节中......\n");
     showTipsMsg();
 }
 void DeltaEMainWindow::actOpenColor()
@@ -126,9 +146,9 @@ void DeltaEMainWindow::actOpenColor()
 }
 void DeltaEMainWindow::actTest()
 {
-    pDteInterface->dteTest(ui->txt_R->text().toInt(),
-                           ui->txt_G->text().toInt(),
-                           ui->txt_B->text().toInt());
+   // pDteInterface->dteTest(ui->txt_R->text().toInt(),
+   //                        ui->txt_G->text().toInt(),
+   //                        ui->txt_B->text().toInt());
 }
 void DeltaEMainWindow::actAbout()
 {
@@ -159,25 +179,25 @@ void DeltaEMainWindow::actWorkFeeback(FUNCSTATUS_t status, bool result)
     workerThread->wait();
     switch (status) {
     case FUNC_CHECK:
-        strTips.append("check ");
+        strTips.append("检测");
         break;
     case FUNC_ADJUST:
-        strTips.append("adjust ");
+        strTips.append("调节");
         break;
     case FUNC_RUN:
-        strTips.append("run ");
+        strTips.append("运行");
         break;
     default:
         break;
     }
     if(result)
     {
-        strTips.append("success !!!\n");
+        strTips.append("成功 !!!\n");
         showTipsMsg(LOG_PASS);
     }
     else
     {
-        strTips.append("fail !!!\n");
+        strTips.append("失败 !!!\n");
         showTipsMsg(LOG_ERROR);
     }
     pBtnEnable(true);
@@ -218,6 +238,11 @@ void DeltaEMainWindow::pBtnEnable(bool bEnable)
     ui->pBtn_Run->setEnabled(bEnable);
     ui->pBtn_Adjust->setEnabled(bEnable);
     ui->pBtn_Check->setEnabled(bEnable);
-    ui->pBtn_Connect->setEnabled(bEnable);
+//    ui->pBtn_Connect->setEnabled(bEnable);
     ui->pBtn_Color->setEnabled(bEnable);
+}
+
+void DeltaEMainWindow::on_pBtn_Check_clicked()
+{
+
 }

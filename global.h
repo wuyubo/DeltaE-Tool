@@ -11,24 +11,24 @@
 /**********************************
 *** mglobal define here
 **********************************/
-#define VERSION  "DeltaE V1.0 @CVTE"
+#define VERSION  "DeltaE Tool V2.0 @CVTE"
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
 #define SRGB_PATTERN_PATN "sRGB_patternL"
 #define SRGB_PATTERN_SUFFIX ".cvt"
-#define GAMMA_TABLE_PATH  "./GammaTable.txt"
-#define COLOR_MATRIX_PATH "./ColorMatrix.txt"
+#define GAMMA_TABLE_PATH  "./GammaTable.cvt"
+#define COLOR_MATRIX_PATH "./ColorMatrix.cvt"
 #define NATIVE_PATH   "./Native_PL"
-#define NATIVE_SUFFIX   ".txt"
-#define DELTAE_DATA_PATH  "./DeltaE_data.txt"
-#define SETTING_PATH  "./setting.txt"
+#define NATIVE_SUFFIX   ".cvt"
+#define DELTAE_DATA_PATH  "./DeltaE_data.cvt"
+#define SETTING_PATH  "./setting.ini"
 
 #define I2C_SETTING  "I2C"
 #define CA210_SETTING  "CA210"
 #define DELTAE_SETTING  "DeltaE"
 
-#define EN_DEBUG 1
+#define EN_DEBUG 0
 #if EN_DEBUG
 #define DEBUGMSG(fmt, args...) qDebug(fmt, ##args)
 #else
@@ -164,8 +164,8 @@ typedef enum ADJUSTTYPE
 //CA210 data start
 //**********************************
 #define CA210_CHANNEL  0
-#define DEF_DALEY_MS   300
-#define ADJUST_DALEY_MS  300
+#define DEF_DALEY_MS   50
+#define ADJUST_DALEY_MS  50
 #define CHECK_DALEY_MS   300
 #define CIE94_RESULT    2.0
 //**********************************
