@@ -4,9 +4,10 @@ namespace ddc {
 
 #define     FEEDBACK_LEN         9
 #define     RETRY_CNT            3
-#define     COMMON_DELAY         300
+#define     COMMON_DELAY         100
 #define     LASTPACK_DELAY       600
-
+#define     WR_GAMMA_DELAY       1200
+#define     WR_COLORMATRIX_DELAY 600
 
 //example
 quint8 enterAtcmdtab[]={0xc0,0x43,0x56,0x54,0x45,0x41,0x54,0x4f,0x4e};
@@ -25,6 +26,7 @@ quint8 WRPostGmaCmd[]={0xCC, 0x32, 0X00, 0X00, 0X00, 0X00, 0X00};
 quint8 WRColorMatrixCmd[]={0xCC, 0x84, 0X00, 0X00};
 quint8 ReadACKCmd[]={0xCC, 0x8E};
 quint8 SaveGmaCmd[]={0xCC, 0x33, 0x00, 0x00, 0x16};
+quint8 SaveColorMatrix[]={0xCC, 0x86, 0x01};
 
 //verify function declarations
 
@@ -34,13 +36,28 @@ quint8 getFeedbackchecksum(quint8 *data,quint8 datalen)
     quint8 checksum=0;
     for (int i = 0; i < datalen; i++)
     {
-        checksum^=*data++;
+        checksum^=data[i];
     }
-    checksum ^= checksum;
     return checksum;
 }
+
+quint8 getRevChecksum(quint8 *data, quint8 count)
+{
+   quint8 CheckSum;
+   quint8 i = 0;
+   CheckSum = 0x50;
+
+   for( ; count > 0; count-- )
+   {
+       CheckSum ^= data[i++];
+   }
+
+   return CheckSum;
+}
+
 bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
 {
+    static quint8 checkSum = 0;
     Q_UNUSED(fdlen);
     Q_UNUSED(data);
     Q_UNUSED(len);
@@ -48,24 +65,34 @@ bool CommonFeedbackverify(quint8 *feedback,quint8 fdlen,quint8 *data,quint8 len)
     {
         return false;
     }
+    if(len > 0)
+    {
+        checkSum = getFeedbackchecksum(data, len);
+    }
     if(feedback[0] == 0x6E)
     {
         if(feedback[1] == 0x80)
         {
-            if( feedback[2] == 0xBE )
+            if( getRevChecksum(feedback, 2) == feedback[2] )
             {
                 return true;
             }
         }else if(feedback[1] == 0x81)
         {
-            if(getFeedbackchecksum(data, len) == feedback[1])
+            if(checkSum == feedback[2])
             {
-                return true;
+                if(getRevChecksum(feedback, 3) == feedback[3])
+                {
+                    return true;
+                }
             }
         }
         else if(feedback[1] == 0x82)
         {
-            return true;
+            if( getRevChecksum(feedback, 2) == feedback[2] )
+            {
+                return true;
+            }
 
         }
     }
@@ -177,7 +204,7 @@ burnCmd_t enterATcmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -192,7 +219,7 @@ burnCmd_t enterDeltaEDebugcmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -207,7 +234,7 @@ burnCmd_t enterDeltaEAutoGammacmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -222,7 +249,7 @@ burnCmd_t writeDeltaERGBPaternCmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -237,7 +264,7 @@ burnCmd_t exitDeltaEDebugcmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -252,7 +279,7 @@ burnCmd_t exitDeltaEAutoGammacmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -266,8 +293,8 @@ burnCmd_t writeDeltaEPostGammacmd =
     &CommonAssemble_Alloc,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
-    COMMON_DELAY,
+    RETRY_CNT,
+    WR_GAMMA_DELAY,
     COMMON_DELAY,
 };
 burnCmd_t writeDeltaEColorMatrixcmd =
@@ -280,8 +307,8 @@ burnCmd_t writeDeltaEColorMatrixcmd =
     &CommonAssemble_Alloc,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
-    COMMON_DELAY,
+    RETRY_CNT,
+    WR_COLORMATRIX_DELAY,
     COMMON_DELAY,
 };
 
@@ -295,7 +322,7 @@ burnCmd_t readDeltaEACKcmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
@@ -310,10 +337,23 @@ burnCmd_t saveDeltaEGmacmd =
     nullptr,
     FEEDBACK_LEN,
     &CommonFeedbackverify,
-    3,
+    RETRY_CNT,
     COMMON_DELAY,
     COMMON_DELAY,
 };
-
+burnCmd_t SaveDeltaEColorMatrixcmd =
+{
+    QString("SaveColorMatrix"),
+    QString("Save the DeltaE Gamma, so can the other instructions execute!"),
+    nullptr,
+    SaveColorMatrix,
+    sizeof(SaveColorMatrix),
+    nullptr,
+    FEEDBACK_LEN,
+    &CommonFeedbackverify,
+    RETRY_CNT,
+    COMMON_DELAY,
+    COMMON_DELAY,
+};
 
 }

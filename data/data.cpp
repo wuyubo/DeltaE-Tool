@@ -1,6 +1,7 @@
 #include "data.h"
 #include "deltaE/DeltaE.h"
 #include <QFile>
+#include <QDateTime>
 const cRGB_t defaultPatternList[32] = {
     {32, 32, 32},
     {64, 64, 64},
@@ -255,6 +256,12 @@ Data::Data(QObject *parent) : QObject(parent)
    {
        m_Native_RGBW[i] = default_Native_RGB_XYZxy[i];
    }
+#if EN_SAVE_SINGLE_DATA
+   data_Dir = QDir::currentPath()+"/";
+   QDateTime current_date_time =QDateTime::currentDateTime();
+   QString current_date =current_date_time.toString("yyyyMMddhhmmss");
+   data_Dir += current_date;
+#endif
 }
 
 void Data::init_PatRgbList()
@@ -358,7 +365,7 @@ int Data::getPatternCount()
 
 QString Data::readFile(QString path)
 {
-    QString data;
+    QString data = "";
     char cBuf[128];
     qint64 LineLen;
     QFile file(path);      //---打开文件
@@ -395,7 +402,11 @@ bool Data::saveCompGma(BYTE *pCompressGma, int size)
 {
     QString data, temp, path;
     int i;
+ #if EN_SAVE_SINGLE_DATA
+    path = data_Dir+"/"+ GAMMA_TABLE_PATH;
+ #else
     path = GAMMA_TABLE_PATH;
+ #endif
     if(size > _MAX_COMP_GMA_COUT)
     {
         return false;
@@ -433,7 +444,11 @@ bool Data::saveColorMatrix(BYTE *psRgbCM, int size)
 {
     QString data, temp, path;
     int i;
+#if EN_SAVE_SINGLE_DATA
+    path = data_Dir+"/"+COLOR_MATRIX_PATH;
+#else
     path = COLOR_MATRIX_PATH;
+#endif
     if(size > _MAX_COLOR_MATRIX_COUT)
     {
         return false;
@@ -458,7 +473,11 @@ bool Data::saveColorMatrix(BYTE *psRgbCM, int size)
 
 bool Data::readCompGma(BYTE *pCompressGma, int size)
 {
+ #if EN_SAVE_SINGLE_DATA
+    QString data = readFile(data_Dir+"/"+GAMMA_TABLE_PATH);
+#else
     QString data = readFile(GAMMA_TABLE_PATH);
+#endif
     QStringList dataList;
     int i;
     bool ok;
@@ -484,7 +503,12 @@ bool Data::readCompGma(BYTE *pCompressGma, int size)
 
 bool Data::readColorMatrix(BYTE *sRgbCM, int size)
 {
-    QString data = readFile(COLOR_MATRIX_PATH);
+#if EN_SAVE_SINGLE_DATA
+    QString path = data_Dir+"/"+COLOR_MATRIX_PATH;
+#else
+    QString path = COLOR_MATRIX_PATH;
+#endif
+    QString data = readFile(path);
     QStringList dataList;
     int i;
     bool ok;
@@ -551,7 +575,18 @@ bool Data::savePanelNativeData()
 {
     QString data, temp, path;
     int i, rgbw = 0;
+#if EN_SAVE_SINGLE_DATA
+    data_Dir = CreateDataDir(data_Dir);
+
+    if(data_Dir == "")
+    {
+        return false;
+    }
+#endif
     path.sprintf("%s%d%s", NATIVE_PATH, pat_Level, NATIVE_SUFFIX);
+#if EN_SAVE_SINGLE_DATA
+    path = data_Dir+"/"+path;
+#endif
     temp.sprintf("LEVEL %d\n",pat_Level);
     data.append(temp);
     for(i = 0 ; i<4*5*pat_Level; i++)
@@ -665,7 +700,14 @@ bool Data::loadPanelNativeData()
     QStringList dataList;
     temp.sprintf("LEVEL%d\n",pat_Level);
     path.sprintf("%s%d%s", NATIVE_PATH, pat_Level, NATIVE_SUFFIX);
+#if EN_SAVE_SINGLE_DATA
+    path = data_Dir+"/"+path;
+#endif
     data = readFile(path);
+    if(data == "")
+    {
+        return false;
+    }
     data.replace(QString(" "), QString(""));
     data.replace(temp, QString(""));
     data.replace(QString("RX"), QString(""));
@@ -838,6 +880,10 @@ void Data::setBurnSetting(QString name, QString value)
     else if(name == "Burn_PerPackRetryCnt")
     {
         m_pBurnsettings->setPerpackRetryCnt(value.toInt());
+    }
+    else if(name == "Burn_sendDelay")
+    {
+        m_pBurnsettings->setsendDelay(value.toInt());
     }
 }
 
@@ -1067,3 +1113,43 @@ void Data::setDeltaESetting(QString name, QString value)
     }
 
 }
+
+QString Data::loadStandardValue()
+{
+    QString data, path;
+    path.sprintf(STANDARD_VALUE_PATH);
+    data = readFile(path);
+
+    if(data.length()>0)
+    {
+        return data;
+    }
+    return QString("%1").arg(CIE94_RESULT);
+}
+
+void Data::saveStandardValue(QString value)
+{
+   QString path;
+   path.sprintf(STANDARD_VALUE_PATH);
+   saveFile(path, value);
+}
+#if EN_SAVE_SINGLE_DATA
+QString Data::CreateDataDir(QString _data_dir)
+{
+    QDir dir(_data_dir);
+    if(dir.exists())
+    {
+      _data_dir = QDir::currentPath()+"/";
+      QDateTime current_date_time =QDateTime::currentDateTime();
+      QString current_date =current_date_time.toString("yyyyMMddhhmmss");
+      _data_dir += current_date;
+      return CreateDataDir(_data_dir);
+
+    }
+    else
+    {
+       dir.mkdir(_data_dir);//只创建一级子目录，即必须保证上级目录存在
+       return _data_dir;
+    }
+}
+#endif

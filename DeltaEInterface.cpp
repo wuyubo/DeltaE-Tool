@@ -31,7 +31,7 @@ DeltaEInterface::DeltaEInterface(QObject *parent) : QObject(parent)
     m_pDDCprotocol->setSlaveAddr(m_pBurnsettings->m_slaveaddr);
     m_transfer = new Transfer_T(*m_pDDCprotocol,m_pBurnsettings->m_perpackretrycnt);
 
-    connect(m_pDDCprotocol,SIGNAL(start_emit(QString)),this,SLOT(recvMsg(QString)));
+    connect(m_transfer, SIGNAL(send_debugMsg(QString)), this, SLOT(recvMsg(QString)));
 }
 
 DeltaEInterface::~DeltaEInterface()
@@ -174,6 +174,10 @@ bool DeltaEInterface::dteAdjust()
     else
     {
         result = sRGB_DeltaEAdjust();
+    }
+    if(result == false)
+    {
+        showMsg("调节失败...", LOG_ERROR);
     }
     return result;
 }
@@ -339,12 +343,17 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
     //QString temp;
     int pattern_index=0;
     float result;
+    bool ret = false;
 
     for(pattern_index = 0;pattern_index < m_pdata->getPatternCount(); pattern_index++)
     {
         sendPattern(m_pdata->pat_RgbList[pattern_index]);//发送测试Pattern
         delayMs(m_delayTimeMs);//延时ms
         pca210 = pCa210->caMeasure();
+        if(pca210 == NULL)
+        {
+            return false;
+        }
         if(isStatus(FUNC_CHECK))
         {
             result = GetDeltaE_OnePatCIE94(pattern_index, pca210->fX, pca210->fY, pca210->fZ, m_d100W_Raw_Y);
@@ -356,18 +365,23 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep2()
         {
             m_pdata->setPanelNativeData((int)pattern_index/(m_pdata->pat_Level), pattern_index%m_pdata->pat_Level,
                                     pca210->fX, pca210->fY, pca210->fZ, pca210->fSx, pca210->fSy);
+            /*if((pca210->fX > 100)|| (pca210->fY > 100) )
+            {
+                showMsg("检测数据出现异常，请检测CA210是否对准屏幕", LOG_ERROR);
+                return false;
+            }*/
         }
     }
 
     if(isStatus(FUNC_CHECK))
     {
-        m_pdata->saveDeltaEData();
+        ret = m_pdata->saveDeltaEData();
     }
     else
     {
-        m_pdata->savePanelNativeData();
+        ret = m_pdata->savePanelNativeData();
     }
-    return true;
+    return ret;
 }
 
 bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
@@ -390,14 +404,32 @@ bool DeltaEInterface::sRGB_DeltaEVerifyStep3()
 
 bool DeltaEInterface::sRGB_DeltaEAdjust()
 {
-    sRGB_DeltaEAdjustStep0();//load native data
+    bool ret = false;
+    ret = sRGB_DeltaEAdjustStep0();//load native data
+    if(ret == false)
+    {
+        showMsg("文件加载失败，请重试", LOG_ERROR);
+        return false;
+    }
     showMsg("生成gamma数据....");
     sRGB_DeltaEAdjustStep1();// generate gamma
+    if(ret == false)
+    {
+        showMsg("算法运行失败，请重试", LOG_ERROR);
+        return false;
+    }
     showMsg("写入gamma数据到Monitor....");
-    return sRGB_DeltaEAdjustStep2();//send gamma to monitor
+    ret = sRGB_DeltaEAdjustStep2();//send gamma to monitor
+    if(ret == false)
+    {
+        cmdSend(&exitDeltaEDebugcmd);
+        showMsg("串口通信失败，请检查串口连接重试", LOG_ERROR);
+    }
+    return ret;
 }
 bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
 {
+    bool ret = false;
     double GmaIn[4*5*m_pdata->deltaEStting->patternLevel];
     const int compDataSize = m_pdata->deltaEStting->compressSize;
     const int sRgbCMDataSize = m_pdata->deltaEStting->colorMetrixSize;
@@ -437,7 +469,11 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
      //            , gammaEntris, nativeDataFmtType, gamutType, darkModifyLevel);
     //showMsg(temp);
     //step 0. measured XYZxy NativeData
-    m_pdata->loadPanelNativeData();
+    ret = m_pdata->loadPanelNativeData();
+    if(ret == false)
+    {
+        return ret;
+    }
     m_pdata->getPanelNativeData(GmaIn);
     //step 1. set output gamma entries
     pMstGenGma->msetGammaEntries(gammaEntris);
@@ -482,14 +518,25 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep1()
     pMstGenGma->mgenerateGamma();
     pMstGenGma->mgetCompressedGmaData(compGmaType, outCompressBuf);
     pMstGenGma->mgetColorMatrixData(sRgbCM);
-    m_pdata->saveCompGma(outCompressBuf, compDataSize*3);
-    m_pdata->saveColorMatrix(sRgbCM, sRgbCMDataSize);
+    ret = m_pdata->saveCompGma(outCompressBuf, compDataSize*3);
+    if(ret == false)
+    {
+        showMsg("保存CompGma数据失败", LOG_ERROR);
+        return ret;
+    }
+    ret = m_pdata->saveColorMatrix(sRgbCM, sRgbCMDataSize);
+    if(ret == false)
+    {
+        showMsg("保存ColorMatrix数据失败", LOG_ERROR);
+        return ret;
+    }
     return true;
 }
 bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
 {
     BYTE *pCompGama;
     BYTE *psRgbCm;
+    bool ret = false;
     const int compDataSize = m_pdata->deltaEStting->compressSize;
     const int sRgbCMDataSize = m_pdata->deltaEStting->colorMetrixSize;
     const int packet_1 = (int)compDataSize/2;
@@ -498,7 +545,13 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
     pCompGama = m_pdata->getCompGma();
     psRgbCm = m_pdata->getColorMatrix();
     //先发送MS_WR_BLOCK ，进入调试模式
-    cmdSend(&enterDeltaEDebugcmd);
+    showMsg("1.发送MS_WR_BLOCK ，进入调试模式");
+    ret = cmdSend(&enterDeltaEDebugcmd);
+    if(ret == false)
+    {
+        showMsg("进入调试模式失败", LOG_ERROR);
+       // return false;
+    }
     for(i = 0; i < 3; i++)
     {
         //先发送 GAMMA MODE 0 ，Channel i，前32字节
@@ -506,39 +559,110 @@ bool DeltaEInterface::sRGB_DeltaEAdjustStep2()
         POSTGMA_SETCHANEL(i);
         POSTGMA_SETSIZE(packet_1);
         POSTGMA_SETOFFSET(0);
-        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*compDataSize, packet_1);
+        delayMs(100);
+        showMsg("2.发送 GAMMA MODE 0 ，Channel i，前32字节");
+        ret = cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*compDataSize, packet_1);
+        if(ret == false)
+        {
+            showMsg("发送前32字节失败", LOG_ERROR);
+            return false;
+        }
+         delayMs(300);
+         showMsg("3.读取ACK");
         delayMs(40);
-        cmdSend(&readDeltaEACKcmd);
+        ret = cmdSend(&readDeltaEACKcmd);
+        if(ret == false)
+        {
+            showMsg("发送前32字节失败", LOG_ERROR);
+          //  return false;
+        }
         //发送 GAMMA MODE 0 ，Channel i，后32字节s
         POSTGMA_SETSIZE(packet_2);
         POSTGMA_SETOFFSET(packet_1);
-        cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*compDataSize+packet_1, packet_2);
-        delayMs(40);
-        cmdSend(&readDeltaEACKcmd);
+        delayMs(100);
+        showMsg("4.发送 GAMMA MODE 0 ，Channel i，后32字节");
+        ret = cmdSend(&writeDeltaEPostGammacmd, pCompGama+i*compDataSize+packet_1, packet_2);
+        if(ret == false)
+        {
+            showMsg("发送失败后32字节失败", LOG_ERROR);
+          //  return false;
+        }
+        delayMs(300);
+        showMsg("6.读取ACK");
+        ret = cmdSend(&readDeltaEACKcmd);
+        if(ret == false)
+        {
+            showMsg("发送失败后32字节失败", LOG_ERROR);
+            return false;
+        }
     }
     //保存SRGB Gamma
-    cmdSend(&saveDeltaEGmacmd);
+    delayMs(60);
+    showMsg("7.保存gamma");
+    ret = cmdSend(&saveDeltaEGmacmd);
+    if(ret == false)
+    {
+        showMsg("发送gamma数据失败", LOG_ERROR);
+       // return false;
+    }
     //退出调试模式
-    cmdSend(&exitDeltaEDebugcmd);
+    delayMs(100);
+    showMsg("8.退出调试模式");
+    ret = cmdSend(&exitDeltaEDebugcmd);
+    if(ret == false)
+    {
+     //  return false;
+    }
+
     //写ColorMatrix Mode：SRGB 18Byte
-    cmdSend(&enterDeltaEDebugcmd);
+     delayMs(300);
+    showMsg("9.进入调试模式");
+    ret = cmdSend(&enterDeltaEDebugcmd);
+    if(ret == false)
+    {
+     //   return false;
+    }
     COLORMATRIX_SETMODE(0);
     COLORMATRIX_SETSIZE(sRgbCMDataSize);
-    cmdSend(&writeDeltaEColorMatrixcmd, psRgbCm, sRgbCMDataSize);
-    delayMs(40);
-    cmdSend(&readDeltaEACKcmd);
+    delayMs(100);
+    showMsg("10.发送color Matix");
+    ret = cmdSend(&writeDeltaEColorMatrixcmd, psRgbCm, sRgbCMDataSize);
+    if(ret == false)
+    {
+      //  return false;
+    }
+    delayMs(300);
+    ret = cmdSend(&readDeltaEACKcmd);
+    if(ret == false)
+    {
+      //  return false;
+    }
+    delayMs(100);
     //退出调试模式
+    delayMs(800);
+    showMsg("12.进入调试模式");
     return cmdSend(&exitDeltaEDebugcmd);
 }
 
 bool DeltaEInterface::sRGB_DeltaEAdjustStep0()
 {
+    bool ret = false;
     if(isStatus(FUNC_ADJUST) || isStatus(FUNC_RUN))
     {
-        m_pdata->loadDeltaESetting();
+        ret = m_pdata->loadDeltaESetting();
+        if(ret == false)
+        {
+            showMsg("加载setting.ini失败!!", LOG_ERROR);
+            return ret;
+        }
         m_pdata->loadPanelNativeData();
+        if(ret == false)
+        {
+            showMsg("加载PanelNativeData失败!!", LOG_ERROR);
+            return ret;
+        }
     }
-    return true;
+    return ret;
 }
 bool DeltaEInterface::cmdSend(QString CmdStr)
 {
@@ -604,7 +728,7 @@ bool DeltaEInterface::cmdSend(QString CmdStr)
     m_transfer->run();
     m_transfer->wait();//wait for the end of transfer thread.
     delete[] ins;
-    return true;
+    return m_transfer->getResult();
 }
 
 bool DeltaEInterface::cmdSend(burnCmd_t *cmd)
@@ -619,7 +743,7 @@ bool DeltaEInterface::cmdSend(burnCmd_t *cmd)
 
     m_transfer->run();
     m_transfer->wait();//wait for the end of transfer thread.
-    return true;
+    return m_transfer->getResult();
 }
 
 bool DeltaEInterface::cmdSend(burnCmd_t *cmd,quint8 *data, quint32 size,quint8 source)
@@ -629,31 +753,52 @@ bool DeltaEInterface::cmdSend(burnCmd_t *cmd,quint8 *data, quint32 size,quint8 s
         return false;
     }
     cmd->retrycnt = m_pdata->m_pBurnsettings->getRetryCnt();
-    cmd->delay = m_pdata->m_pBurnsettings->getwriteDelay();
+    //cmd->delay = m_pdata->m_pBurnsettings->getwriteDelay();
     m_transfer->setburnCmd(cmd,data,size,source);
 
     m_transfer->run();
     m_transfer->wait();//wait for the end of transfer thread.
-    return true;
+    return m_transfer->getResult();
 }
 
 void DeltaEInterface::recvMsg(QString msg)
 {
-    showMsg(msg, LOG_NONE);
+    showMsg(msg, LOG_DEBUG);
 }
 
 bool DeltaEInterface::sRGB_DeltaERun()
 {
+    bool ret = false;
     if(!pCa210 || !pCa210->isConnect())
     {
        showMsg("请连接串口或色温仪...", LOG_ERROR);
        return false;
     }
-    sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
-    sRGB_DeltaERunstep1(); //useless
-    sRGB_DeltaERunstep2(); //measure ca210
-    sRGB_DeltaERunstep3(); //monitor exit debug mode
-    return sRGB_DeltaERunstep4(); //adjust
+    ret = sRGB_DeltaERunstep0(); //monitor enter debug mode and load patern
+    if(ret == false)
+    {
+        return ret;
+    }
+    ret = sRGB_DeltaERunstep1(); //useless
+    if(ret == false)
+    {
+        return ret;
+    }
+    ret = sRGB_DeltaERunstep2(); //measure ca210
+    if(ret == false)
+    {
+        showMsg("色温检测有误，请检连接重试", LOG_ERROR);
+        sRGB_DeltaERunstep3();
+        return ret;
+    }
+    ret = sRGB_DeltaERunstep3(); //monitor exit debug mode
+    if(ret == false)
+    {
+        showMsg("串口发失败，请检查串连接重试！！", LOG_ERROR);
+        return ret;
+    }
+    ret = sRGB_DeltaERunstep4(); //adjust
+    return ret;
 }
 
 bool DeltaEInterface::sRGB_DeltaERunstep0()
@@ -680,9 +825,10 @@ bool DeltaEInterface::sRGB_DeltaERunstep2()
 
 bool DeltaEInterface::sRGB_DeltaERunstep3()
 {
-    cmdSend(&exitDeltaEDebugcmd);
-    cmdSend(&exitDeltaEAutoGammacmd);
-    return true;
+    bool ret = false;
+    ret = cmdSend(&exitDeltaEDebugcmd);
+    ret = cmdSend(&exitDeltaEAutoGammacmd);
+    return ret;
 }
 
 bool DeltaEInterface::sRGB_DeltaERunstep4()

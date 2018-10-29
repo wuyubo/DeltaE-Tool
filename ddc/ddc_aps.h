@@ -56,6 +56,7 @@ extern burnCmd_t writeDeltaEPostGammacmd;
 extern burnCmd_t writeDeltaEColorMatrixcmd;
 extern burnCmd_t readDeltaEACKcmd;
 extern burnCmd_t saveDeltaEGmacmd;
+extern burnCmd_t SaveDeltaEColorMatrixcmd;
 }
 
 #endif // DDC_APS_H

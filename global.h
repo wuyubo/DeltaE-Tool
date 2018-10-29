@@ -11,7 +11,7 @@
 /**********************************
 *** mglobal define here
 **********************************/
-#define VERSION  "DeltaE Tool V2.0 @CVTE"
+#define VERSION  "DeltaE Tool V3.0 @CVTE"
 
 #define CA210DLL "CA210Ctrl.dll"  // put dll file to folder where is exe
 
@@ -23,6 +23,7 @@
 #define NATIVE_SUFFIX   ".cvt"
 #define DELTAE_DATA_PATH  "./DeltaE_data.cvt"
 #define SETTING_PATH  "./setting.ini"
+#define STANDARD_VALUE_PATH  "./standard_value.ini"
 
 #define I2C_SETTING  "I2C"
 #define CA210_SETTING  "CA210"
@@ -35,6 +36,8 @@
 #define DEBUGMSG(fmt, args...)
 #endif
 #define EN_SHOW_DEBUG_MESSAGE  0
+#define EN_SAVE_SINGLE_DATA    0
+#define EN_RUN_FUNTION         0
 /**********************************
 *** global define end
 **********************************/
@@ -87,6 +90,7 @@ typedef enum LOGTEXTTYPE
     LOG_ERROR,
     LOG_WARNING,
     LOG_TEXTBOX,
+    LOG_DEBUG,
     LOG_END,
 }LOGTEXTTYPE_t;
 

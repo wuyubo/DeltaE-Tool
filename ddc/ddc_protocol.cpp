@@ -47,10 +47,13 @@ bool DDCProtocol_T::write(quint8* data,quint8 len,bool c)
 
     if(c==0)
     {
+      //  qDebug()<<wstr;
     //    DEBUGMSG(wstr);
     }
     else
     {
+       // qDebug()<<"-----------------";
+       // qDebug()<<wstr;
         wstr.append("\n");
         emit start_emit(wstr);
     }
@@ -68,17 +71,18 @@ bool DDCProtocol_T::read(quint8* buf,quint8 len,bool c)
     {
         m_i2c.read(m_i2c.gethandle(), m_slaveaddr, &buf[i], 1);
         //DEBUGMSG("%x ", buf[i]);
-        //cout<<hex<< (int)buf[i] <<" ";
         QString str = QString("%1").arg((buf[i])&0xFF,2,16,QLatin1Char('0')).toUpper();
         wstr.append(str);
         wstr.append(" ");
     }
     if(c==0)
     {
+       //  qDebug()<<wstr;
   //      DEBUGMSG(wstr);
     }
     else
     {
+       // qDebug()<<wstr;
         wstr.append("\n");
         emit start_emit(wstr);
     }

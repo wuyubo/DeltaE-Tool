@@ -12,7 +12,7 @@ class Transfer_T : public QThread
     Q_OBJECT
 
 public:
-    Transfer_T(DDCProtocol_T& protocol,quint8 spretry):m_protocol(protocol),m_spretrycnt(spretry){}
+    Transfer_T(DDCProtocol_T& protocol,quint8 spretry);
     ~Transfer_T(){}
 
     void setburnCmd(burnCmd_t *burnmsg,quint8 source);//just set the burncmd readyto to write to device.
@@ -21,9 +21,11 @@ public:
 
     bool transfermultipackage();
     bool transferpackage();
+    bool getResult();
 
 	void run();
-
+private slots:
+    void debugMsg(QString msg);
 private:
     quint8* m_databody=nullptr;
     quint32 m_bodysize=0;
@@ -33,9 +35,11 @@ private:
     quint8 m_source=0;
 
     DDCProtocol_T& m_protocol;//must be intialize in constructor function
+    bool isSccess;
 
 signals:
     void transfer_res(QString name,qint32 value);
+    void send_debugMsg(QString msg);
 };
 
 }

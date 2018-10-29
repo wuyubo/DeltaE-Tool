@@ -38,6 +38,9 @@ public:
     void setCA210Setting(QString name, QString value);
     bool loadDeltaESetting();
     void setDeltaESetting(QString name, QString value);
+    QString loadStandardValue();
+    void saveStandardValue(QString value);
+    QString CreateDataDir(QString _data_dir);
 signals:
 
 public slots:
@@ -51,6 +54,9 @@ public:
     BurnSetting_T *m_pBurnsettings;
     CA210Setting_t *ca210Setting;
     DeltaESetting_t *deltaEStting;
+ #if EN_SAVE_SINGLE_DATA
+    QString data_Dir;
+ #endif
 };
 
 #endif // DATA_H

@@ -18,6 +18,7 @@ public:
 	void setEraseHdcpDelay(int delay);
 	void setSlaveaddr(unsigned char slaveaddr);
 	void setCreatlogs(bool iscreatlog);
+    void setsendDelay(int delay);
 
     int getI2cSpeed(void) const;//const type function
 	int getwriteDelay(void) const;
@@ -29,6 +30,7 @@ public:
 	int getEraseHdcpDelay(void);
 	bool getCreatlogs(void);	
 	unsigned char getSlaveaddr(void);
+    int getsendDelay(void) const;
 
     unsigned char m_slaveaddr=0x6E;
     bool m_iscreatelogs;
@@ -40,5 +42,6 @@ public:
     int m_edidlastdelay;//ms
     int m_hdcplastdelay;//ms
     int m_erasehdcpkeydelay;
+    int m_sendDelay;
 };
 }//namespace ddc {

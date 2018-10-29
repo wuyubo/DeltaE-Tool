@@ -11,6 +11,9 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     ui->setupUi(this);
     m_bisConnect = false;
     colorUi = NULL;
+    m_bReset = true;
+    pdata = new Data(this);
+    ui->lb_result_value->setText(pdata->loadStandardValue());
     workerThread = new WorkerThread(this);
     qRegisterMetaType<LOGTEXTTYPE_t>("LOGTEXTTYPE_t");//注册LOGTEXTTYPE_t类型
     qRegisterMetaType<cRGB_t>("cRGB_t");//注册cRGB_t类型
@@ -35,6 +38,10 @@ DeltaEMainWindow::DeltaEMainWindow(QWidget *parent) :
     connect(pDteInterface, SIGNAL(sendPatSignal(cRGB_t)), this, SLOT(actSendPat(cRGB_t)));
     connect(pDteInterface, SIGNAL(updateMsgSignal(LOGTEXTTYPE_t)), this, SLOT(actUpdateMsg(LOGTEXTTYPE_t)));
     connect(workerThread, SIGNAL(signalSendFeeback(FUNCSTATUS_t,bool)), this, SLOT(actWorkFeeback(FUNCSTATUS_t,bool)));
+
+#if !EN_RUN_FUNTION
+    ui->pBtn_Run->hide();
+#endif
 }
 
 DeltaEMainWindow::~DeltaEMainWindow()
@@ -204,11 +211,13 @@ void DeltaEMainWindow::actWorkFeeback(FUNCSTATUS_t status, bool result)
     {
         strTips.append("成功 !!!\n");
         showTipsMsg(LOG_PASS);
+        m_bReset = true;
     }
     else
     {
         strTips.append("失败 NG !!!\n");
         showTipsMsg(LOG_ERROR);
+        m_bReset = false;
     }
     pBtnEnable(true);
 }
@@ -229,6 +238,11 @@ void DeltaEMainWindow::showTipsMsg(LOGTEXTTYPE_t logType)
         case LOG_PASS:
             logColor = Qt::green;
             break;
+
+        case LOG_DEBUG:
+#if !EN_SHOW_DEBUG_MESSAGE
+            return;
+#endif
         case LOG_ERROR:
             logColor = Qt::red;
             break;
@@ -263,7 +277,27 @@ void DeltaEMainWindow::on_pBtn_Check_clicked()
 void DeltaEMainWindow::keyPressEvent(QKeyEvent *e)
 {
     int key = e->key();
-    if(key == Qt::Key_C)
+
+    if(key == Qt::Key_Enter-1)
+    {
+        if(ui->rBtn_check->isChecked())
+        {
+            if(!colorUi)
+            {
+                actOpenColor();
+            }
+            else
+            {
+               actCheck();
+            }
+        }else if(ui->rBtn_adjust->isChecked())
+        {
+            actAdjust();
+        }
+    }
+    qDebug()<<(int)Qt::Key_Enter;
+    qDebug()<<key;
+ /*   if(key == Qt::Key_C)
     {
         if(!colorUi)
         {
@@ -277,7 +311,7 @@ void DeltaEMainWindow::keyPressEvent(QKeyEvent *e)
     {
         actAdjust();
     }
-    else if(key == Qt::Key_R)
+    else if(key == Qt::Key_Enter)
     {
         if(!colorUi)
         {
@@ -289,6 +323,7 @@ void DeltaEMainWindow::keyPressEvent(QKeyEvent *e)
         }
     }
     qDebug()<<key;
+    */
 }
 
 int DeltaEMainWindow::getQTkey(QString strKey)
@@ -297,3 +332,8 @@ int DeltaEMainWindow::getQTkey(QString strKey)
     return Qt::Key_Space;
 }
 
+
+void DeltaEMainWindow::on_ptn_setStandard_clicked()
+{
+    pdata->saveStandardValue(ui->lb_result_value->text());
+}

@@ -58,6 +58,14 @@ void BurnSetting_T::setPerpackRetryCnt(int pcnt)
     m_perpackretrycnt = pcnt;
 }
 
+void BurnSetting_T::setsendDelay(int delay)
+{
+    m_sendDelay = delay;
+}
+int BurnSetting_T::getsendDelay(void) const
+{
+    return m_sendDelay;
+}
 int BurnSetting_T::getI2cSpeed(void) const
 {
     return m_i2cspeed;
@@ -126,4 +134,5 @@ bool BurnSetting_T::getCreatlogs(void)
 {
     return m_iscreatelogs;
 }
+
 }//namespace ddc {

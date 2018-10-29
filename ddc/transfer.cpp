@@ -8,10 +8,16 @@ namespace ddc {
 
 #define		PERPACK_LEN			40
 
+Transfer_T::Transfer_T(DDCProtocol_T& protocol,quint8 spretry):m_protocol(protocol),m_spretrycnt(spretry)
+{
+    connect(&m_protocol, SIGNAL(start_emit(QString)), this, SLOT(debugMsg(QString)));
+}
+
 void Transfer_T::setburnCmd(burnCmd_t *burnmsg,quint8 source)
 {
     m_burnmsg = burnmsg;
     m_source = source;
+    isSccess = false;
 }
 
 void Transfer_T::setburnCmd(burnCmd_t *burnmsg,quint8 *data, quint32 size,quint8 source)
@@ -67,7 +73,7 @@ bool Transfer_T::transfermultipackage(void)
                 }
             }
 
-            qDebug("Sleep %d millisecond",writedelay);
+            //qDebug("Sleep %d millisecond",writedelay);
             Sleep(writedelay);
 
             m_protocol.read(feedback,m_burnmsg->feedbacklen,m_source);
@@ -111,7 +117,7 @@ bool Transfer_T::transferpackage()
     }
     else //only send one package
     {
-        qDebug()<<"single package";
+        //qDebug()<<"single package";
         burndata_t tmpdata;
         quint8* feedback = new quint8[m_burnmsg->feedbacklen];
 
@@ -127,7 +133,7 @@ bool Transfer_T::transferpackage()
             m_protocol.write(m_burnmsg->burndata,m_burnmsg->datalen,m_source);//such as reset instruction.
         }
 
-        qDebug("Sleep %d millisecond",m_burnmsg->delay);
+        //qDebug("Sleep %d millisecond",m_burnmsg->delay);
         Sleep(m_burnmsg->delay);
 
         m_protocol.read(feedback,m_burnmsg->feedbacklen,m_source);
@@ -155,21 +161,29 @@ void Transfer_T::run()
     {
         if (transferpackage())
         {
-            qDebug("Data Write Successfully!");
+           // qDebug("Data Write Successfully!");
             emit transfer_res(m_burnmsg->name,-1);//burn success and return
+            isSccess = true;
             break;
         }
         else
         {
-            qDebug("Write Failed,Retry Times:%d!", k);
+           // qDebug("Write Failed,Retry Times:%d!", k);
             if (k == m_burnmsg->retrycnt-1)//the last chance
             {
-                qDebug("The last retry chance but failed, -----Burning Failed!");
+            //    qDebug("The last retry chance but failed, -----Burning Failed!");
                 emit transfer_res(m_burnmsg->name,-2);//burn failed
+                isSccess = false;
                 return;
             }
         }
     }
+}
+bool Transfer_T::getResult()
+{
+    bool result = isSccess;
+    isSccess = false;
+    return result;
 }
 
 /*
@@ -198,6 +212,10 @@ void Cvt_DataManage::run()
 	}
 }
 */
+void Transfer_T::debugMsg(QString msg)
+{
+    emit send_debugMsg(msg);
+}
 
 
 }

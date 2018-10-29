@@ -31,6 +31,8 @@ private slots:
     void keyPressEvent(QKeyEvent *e);
     int  getQTkey(QString strKey);
 
+    void on_ptn_setStandard_clicked();
+
 private:
     void showTipsMsg(LOGTEXTTYPE_t logType = LOG_NORMAL);
     void pBtnEnable(bool bEnable);
@@ -42,6 +44,8 @@ private:
     QString strTips;
     bool m_bisConnect;
     WorkerThread *workerThread;
+    Data *pdata;
+    bool m_bReset;
 };
 
 #endif // DELTAEMAINWINDOW_H
